@@ -1,3 +1,5 @@
 /.devcontainer
 /.vscode
-/.build
+/build
+/assets
+/logs

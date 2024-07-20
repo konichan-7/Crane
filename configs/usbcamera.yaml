@@ -1,0 +1,8 @@
+image_width: 1920
+image_height: 1080
+fov_h: 87.7
+fov_v: 56.7 
+usb_frame_rate: 60
+usb_exposure: 500 #1-80000______250
+usb_gamma_: 160
+usb_gain_: 10 #0-96

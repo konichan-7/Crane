@@ -21,8 +21,8 @@ add_subdirectory(io)
 # add_executable(crane src/crane.cpp)
 # target_link_libraries(crane ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim tools io perception)
 
-add_executable(usbcamera_test examples/usbcamera_test.cpp)
-target_link_libraries(usbcamera_test ${OpenCV_LIBS} io fmt::fmt tools yaml-cpp)
+add_executable(capture examples/capture.cpp)
+target_link_libraries(capture ${OpenCV_LIBS} io fmt::fmt tools yaml-cpp)
 
-add_executable(usbcamera_detect examples/usbcamera_detect.cpp)
-target_link_libraries(usbcamera_detect ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim tools io perception)
+add_executable(weights_detect examples/weights_detect.cpp)
+target_link_libraries(weights_detect ${OpenCV_LIBS} fmt::fmt yaml-cpp  tools io)

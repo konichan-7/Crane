@@ -5,6 +5,6 @@ add_library(tools OBJECT
     extended_kalman_filter.cpp
     img_tools.cpp
     math_tools.cpp
-    plotter.cppb
+    plotter.cpp
     logger.cpp
 )

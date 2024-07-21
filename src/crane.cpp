@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     }
 
     tasks::draw_detections(img, detections, classes);
-
+    cv::resize(img, img, {}, 0.5, 0.5);
     cv::imshow("press q to quit", img);
 
     if (key == 'q')

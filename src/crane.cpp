@@ -1,26 +1,25 @@
 #include <chrono>
 #include <opencv2/opencv.hpp>
 
-#include "tasks/yolo/yolov8.hpp"
 #include "io/usbcamera/usbcamera.hpp"
+#include "tasks/yolo/yolov8.hpp"
 #include "tools/exiter.hpp"
-#include "tools/plotter.hpp"
 #include "tools/logger.hpp"
+#include "tools/plotter.hpp"
 
 const std::string keys =
-    "{help h usage ? |                        | 输出命令行参数说明 }"
-    "{name n         |video0| 端口名称 }"
-    "{@config-path   | configs/usbcamera.yaml | 位置参数，yaml配置文件路径 }"
-    "{output-folder o | negative/   | 输出文件夹路径   }";
+  "{help h usage ? |                        | 输出命令行参数说明 }"
+  "{name n         |video0| 端口名称 }"
+  "{@config-path   | configs/usbcamera.yaml | 位置参数，yaml配置文件路径 }"
+  "{output-folder o | negative/   | 输出文件夹路径   }";
 
-int main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
   tools::Exiter exiter;
   tools::Plotter plotter;
 
   cv::CommandLineParser cli(argc, argv, keys);
-  if (cli.has("help"))
-  {
+  if (cli.has("help")) {
     cli.printMessage();
     return 0;
   }
@@ -33,18 +32,16 @@ int main(int argc, char *argv[])
 
   std::vector<std::string> classes = {"weights", "wood"};
 
-  tasks::YOLOV8 yolo("assets/openvino_model/best.xml", classes.size(), "AUTO");
+  tasks::YOLOV8 yolo("assets/best_openvino_model/best.xml", classes.size(), "AUTO");
 
   auto sum = 0.0;
   auto count = 0;
   auto sample_count = 1;
 
-  while (!exiter.exit())
-  {
+  while (!exiter.exit()) {
     cv::Mat img;
     img = usbcam.read();
-    if (img.empty())
-    {
+    if (img.empty()) {
       tools::logger()->warn("failed to read img from camera!");
       break;
     }
@@ -61,8 +58,7 @@ int main(int argc, char *argv[])
     count += 1;
 
     auto key = cv::waitKey(1);
-    if (key == 's')
-    {
+    if (key == 's') {
       auto img_path = fmt::format("{}/{}.jpg", output_folder, count);
       cv::imwrite(img_path, img);
       tools::logger()->info("negative samples [{}] Saved in {}", sample_count, output_folder);
@@ -73,8 +69,7 @@ int main(int argc, char *argv[])
     cv::resize(img, img, {}, 0.5, 0.5);
     cv::imshow("press q to quit", img);
 
-    if (key == 'q')
-      break;
+    if (key == 'q') break;
   }
 
   std::cout << "avg: " << count / sum << "fps\n";

@@ -3,14 +3,13 @@
 
 namespace io
 {
-struct Command
-{
-  bool control;
-  bool shoot;
-  double yaw;
-  double pitch;
-};
+  struct Command
+  {
+    int state;
+    double x_bias;
+    double y_bias;
+  };
 
-}  // namespace io
+} // namespace io
 
-#endif  // IO__COMMAND_HPP
+#endif // IO__COMMAND_HPP

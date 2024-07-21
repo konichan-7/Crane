@@ -17,12 +17,13 @@ include_directories(${PROJECT_SOURCE_DIR})
 
 add_subdirectory(tools)
 add_subdirectory(io)
-
-# add_executable(crane src/crane.cpp)
-# target_link_libraries(crane ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim tools io perception)
+add_subdirectory(tasks/yolo)
 
 add_executable(capture examples/capture.cpp)
 target_link_libraries(capture ${OpenCV_LIBS} io fmt::fmt tools yaml-cpp)
 
 add_executable(weights_detect examples/weights_detect.cpp)
 target_link_libraries(weights_detect ${OpenCV_LIBS} fmt::fmt yaml-cpp  tools io)
+
+add_executable(crane src/crane.cpp)
+target_link_libraries(crane ${OpenCV_LIBS} fmt::fmt yaml-cpp yolo tools io)

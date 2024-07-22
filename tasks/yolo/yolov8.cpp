@@ -4,7 +4,7 @@
 
 #include "tools/img_tools.hpp"
 
-namespace tasks
+namespace yolo
 {
 std::vector<cv::Scalar> class_colors;
 
@@ -134,4 +134,4 @@ std::vector<Detection> YOLOV8::parse(double scale, cv::Mat & output) const
   return detections;
 }
 
-}  // namespace tasks
+}  // namespace yolo

@@ -82,23 +82,58 @@ int main(int argc, char * argv[])
 static io::Command filter(const std::vector<yolo::Detection> & detections)
 {
   if (detections.size() == 0) {
-    io::Command command{1, 0, 0};
+    io::Command command{2000, 2000, 2000, 2000};
     return command;
   }
 
-  yolo::Detection target;
-  int min_distance = 0;
+  io::Command command;
+  yolo::Detection wieghts_target, wood_target;
+  int weights_min_distance = 0, wood_min_distance = 0;
+
+  int weights_count = 0, wood_count = 0;
 
   for (auto d : detections) {
-    if (
-      ((d.center.x - 960) * (d.center.x - 960) + (d.center.y - 540) * (d.center.y - 540)) >
-      min_distance) {
-      target = d;
-      min_distance =
-        ((d.center.x - 960) * (d.center.x - 960) + (d.center.y - 540) * (d.center.y - 540));
+    if (d.class_id == 0) {
+      ++weights_count;
+      if (
+        ((d.center.x - 960) * (d.center.x - 960) + (d.center.y - 540) * (d.center.y - 540)) >
+        weights_min_distance) {
+        wieghts_target = d;
+        weights_min_distance =
+          ((d.center.x - 960) * (d.center.x - 960) + (d.center.y - 540) * (d.center.y - 540));
+      }
+    }
+    if (d.class_id == 1) {
+      ++wood_count;
+      if (
+        ((d.center.x - 960) * (d.center.x - 960) + (d.center.y - 540) * (d.center.y - 540)) >
+        wood_min_distance) {
+        wood_target = d;
+        wood_min_distance =
+          ((d.center.x - 960) * (d.center.x - 960) + (d.center.y - 540) * (d.center.y - 540));
+      }
     }
   }
-  io::Command command = {1, target.center.x - 960, target.center.y - 540};
-  tools::logger()->debug("send data:x:{},y:{}", target.center.x - 960, target.center.y - 540);
+  if (weights_count == 0) {
+    command.weights_x = 2000;
+    command.weights_y = 2000;
+    command.wood_x = wood_target.center.x - 960;
+    command.wood_y = wood_target.center.y - 540;
+  }
+  if (wood_count == 0) {
+    command.wood_x = 2000;
+    command.wood_y = 2000;
+    command.weights_x = wieghts_target.center.x - 960;
+    command.weights_y = wieghts_target.center.y - 540;
+  }
+  if (weights_count && wood_count) {
+    command.weights_x = wieghts_target.center.x - 960;
+    command.weights_y = wieghts_target.center.y - 540;
+    command.wood_x = wood_target.center.x - 960;
+    command.wood_y = wood_target.center.y - 540;
+  }
+  tools::logger()->debug(
+    "send data:wex:{},wey:{},wdx:{},wdy:{}", command.weights_x, command.weights_y, command.wood_x,
+    command.wood_y);
   return command;
 }

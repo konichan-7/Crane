@@ -5,9 +5,10 @@ namespace io
 {
 struct Command
 {
-  int state;
-  int x_bias;
-  int y_bias;
+  int16_t weights_x;
+  int16_t weights_y;
+  int16_t wood_x;
+  int16_t wood_y;
 };
 
 }  // namespace io

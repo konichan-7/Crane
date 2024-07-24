@@ -60,11 +60,14 @@ public:
     can_frame frame;
     frame.can_id = 0x100;
     frame.can_dlc = 8;
-    frame.data[0] = (int8_t)command.state;
-    frame.data[1] = (int16_t)command.x_bias >> 8;
-    frame.data[2] = (int16_t)command.x_bias;
-    frame.data[3] = (int16_t)command.y_bias >> 8;
-    frame.data[4] = (int16_t)command.y_bias;
+    frame.data[0] = (int16_t)command.weights_x >> 8;
+    frame.data[1] = (int16_t)command.weights_x;
+    frame.data[2] = (int16_t)command.weights_y >> 8;
+    frame.data[3] = (int16_t)command.weights_y;
+    frame.data[4] = (int16_t)command.wood_x >> 8;
+    frame.data[5] = (int16_t)command.wood_x;
+    frame.data[6] = (int16_t)command.wood_y >> 8;
+    frame.data[7] = (int16_t)command.wood_y;
 
     try {
       can_.write(&frame);

@@ -34,7 +34,7 @@ void capture_loop(
         else if (key != 's')
             continue;
 
-        // 保存图片和四元数
+        // 保存图片
         count++;
         auto img_path = fmt::format("{}/{}.jpg", output_folder, count);
         cv::imwrite(img_path, img);

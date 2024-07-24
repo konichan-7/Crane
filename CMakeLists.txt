@@ -26,7 +26,7 @@ add_executable(weights_detect examples/weights_detect.cpp)
 target_link_libraries(weights_detect ${OpenCV_LIBS} fmt::fmt yaml-cpp  tools io)
 
 add_executable(cboard_test examples/cboard_test.cpp)
-target_link_libraries(cboard_test io tools)
+target_link_libraries(cboard_test fmt::fmt io tools)
 
 add_executable(crane src/crane.cpp)
 target_link_libraries(crane ${OpenCV_LIBS} fmt::fmt yaml-cpp yolo tools io)

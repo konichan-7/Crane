@@ -35,7 +35,7 @@ int main(int argc, char * argv[])
   io::Command command;
   tools::Exiter exiter;
   tools::Plotter plotter;
-  yolo::YOLOV8 yolo("assets/openvino_model_v2/best.xml", classes.size(), "AUTO");
+  yolo::YOLOV8 yolo("assets/openvino_model_v3/best.xml", classes.size(), "AUTO");
 
   auto sum = 0.0;
   auto count = 0;

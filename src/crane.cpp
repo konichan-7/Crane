@@ -96,7 +96,7 @@ static io::Command filter(const std::vector<yolo::Detection> & detections)
     if (d.class_id == 0) {
       ++weights_count;
       if (
-        ((d.center.x - 960) * (d.center.x - 960) + (d.center.y - 540) * (d.center.y - 540)) >
+        ((d.center.x - 960) * (d.center.x - 960) + (d.center.y - 540) * (d.center.y - 540)) <
         weights_min_distance) {
         wieghts_target = d;
         weights_min_distance =
@@ -106,7 +106,7 @@ static io::Command filter(const std::vector<yolo::Detection> & detections)
     if (d.class_id == 1) {
       ++wood_count;
       if (
-        ((d.center.x - 960) * (d.center.x - 960) + (d.center.y - 540) * (d.center.y - 540)) >
+        ((d.center.x - 960) * (d.center.x - 960) + (d.center.y - 540) * (d.center.y - 540)) <
         wood_min_distance) {
         wood_target = d;
         wood_min_distance =

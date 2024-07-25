@@ -10,7 +10,7 @@ namespace auto_crane
 class Decider
 {
 public:
-  Decider(const std::vector<std::string> classes);
+  Decider(const std::vector<std::string> & classes);
   std::vector<Detection> filter(const std::vector<Detection> & detections);
   void save_img(const cv::Mat & img, const std::vector<Detection> & targets);
 

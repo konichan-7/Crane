@@ -11,7 +11,7 @@
 namespace auto_crane
 {
 
-Decider::Decider(const std::vector<std::string> classes)
+Decider::Decider(const std::vector<std::string> & classes)
 {
   classes_ = classes;
   save_path_ = "imgs";

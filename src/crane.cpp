@@ -1,7 +1,7 @@
 #include <chrono>
 #include <opencv2/opencv.hpp>
 
-#include "io/cboard.hpp"
+#include "io/cboard/cboard.hpp"
 #include "io/command.hpp"
 #include "io/usbcamera/usbcamera.hpp"
 #include "tasks/auto_crane/decider.hpp"

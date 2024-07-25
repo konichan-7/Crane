@@ -6,3 +6,10 @@ usb_frame_rate: 60
 usb_exposure: 500 #1-80000______250
 usb_gamma_: 160
 usb_gain_: 10 #0-96
+
+x_cam2gripper: 55
+y_cam2gripper: 55
+
+t_odo2map_x0: 10
+t_odo2map_y0: 10
+noise0: 10.0

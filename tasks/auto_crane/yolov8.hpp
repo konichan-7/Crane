@@ -1,6 +1,7 @@
 #ifndef AUTO_CRANE__YOLOV8_HPP
 #define AUTO_CRANE__YOLOV8_HPP
 
+#include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
 #include <openvino/openvino.hpp>
 #include <string>
@@ -32,9 +33,17 @@ void draw_detections(
 class YOLOV8
 {
 public:
-  YOLOV8(const std::string & model_path, int class_num, const std::string & device = "AUTO");
+  YOLOV8(
+    const std::string & model_path, int class_num, const std::vector<std::string> & classes,
+    const std::string & device = "AUTO");
 
   std::vector<Detection> infer(const cv::Mat & bgr_img);
+
+  std::vector<Detection> filter(const std::vector<Detection> & detections);
+
+  void save_img(const cv::Mat & img, const std::vector<Detection> & targets);
+
+  Eigen::Vector2d pixel2cam(const std::vector<Detection> & landmarks);
 
 private:
   int class_num_;
@@ -42,6 +51,8 @@ private:
   float score_threshold_ = 0.7;
   ov::Core core_;
   ov::CompiledModel compiled_model_;
+  std::string save_path_;
+  std::vector<std::string> classes_;
 
   std::vector<Detection> parse(double scale, cv::Mat & output) const;
 };

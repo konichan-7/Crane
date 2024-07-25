@@ -1,3 +1,4 @@
+#include <Eigen/Dense>
 #include <chrono>
 #include <opencv2/opencv.hpp>
 
@@ -5,6 +6,7 @@
 #include "io/command.hpp"
 #include "io/usbcamera/usbcamera.hpp"
 #include "tasks/auto_crane/decider.hpp"
+#include "tasks/auto_crane/matcher.hpp"
 #include "tasks/auto_crane/yolov8.hpp"
 #include "tools/exiter.hpp"
 #include "tools/logger.hpp"
@@ -34,8 +36,11 @@ int main(int argc, char * argv[])
   io::Command command;
   tools::Exiter exiter;
   tools::Plotter plotter;
-  auto_crane::YOLOV8 yolo("assets/openvino_model_v3/best.xml", classes.size(), "AUTO");
+  auto_crane::YOLOV8 yolo("assets/openvino_model_v3/best.xml", classes.size(), classes, "AUTO");
   auto_crane::Decider decider(classes);
+  auto_crane::Matcher matcher(config_path);
+
+  Eigen::Vector2d t_landmark2cam, t_gripper2odo, t_odo2map;
 
   auto sum = 0.0;
   auto count = 0;
@@ -43,7 +48,7 @@ int main(int argc, char * argv[])
 
   while (!exiter.exit()) {
     cv::Mat img;
-    std::vector<auto_crane::Detection> targets;
+    std::vector<auto_crane::Detection> landmarks;
 
     auto start = std::chrono::steady_clock::now();
 
@@ -58,22 +63,17 @@ int main(int argc, char * argv[])
     sum += span;
     count += 1;
 
-    targets = decider.filter(detections);
-    decider.save_img(img, targets);
+    landmarks = yolo.filter(detections);
+    yolo.save_img(img, landmarks);
+    t_landmark2cam = yolo.pixel2cam(landmarks);
 
-    auto key = cv::waitKey(1);
-    if (key == 's') {
-      auto img_path = fmt::format("{}/{}.jpg", output_folder, sample_count);
-      cv::imwrite(img_path, img);
-      tools::logger()->info("negative samples [{}] Saved in {}", sample_count, output_folder);
-      ++sample_count;
-    }
+    t_odo2map = matcher.match(t_landmark2cam, t_gripper2odo);
 
     auto_crane::draw_detections(img, detections, classes);
     cv::resize(img, img, {}, 0.5, 0.5);
     cv::imshow("press q to quit", img);
 
-    if (key == 'q') break;
+    if (auto key = cv::waitKey(1) == 'q') break;
   }
 
   std::cout << "avg: " << count / sum << "fps\n";

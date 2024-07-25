@@ -1,8 +1,12 @@
 #include "yolov8.hpp"
 
+#include <fmt/chrono.h>
+
+#include <filesystem>
 #include <random>
 
 #include "tools/img_tools.hpp"
+#include "tools/logger.hpp"
 
 namespace auto_crane
 {
@@ -38,8 +42,10 @@ void draw_detections(
   }
 }
 
-YOLOV8::YOLOV8(const std::string & model_path, int class_num, const std::string & device)
-: class_num_(class_num)
+YOLOV8::YOLOV8(
+  const std::string & model_path, int class_num, const std::vector<std::string> & classes,
+  const std::string & device)
+: class_num_(class_num), classes_(classes)
 {
   auto model = core_.read_model(model_path);
 
@@ -63,6 +69,8 @@ YOLOV8::YOLOV8(const std::string & model_path, int class_num, const std::string 
   model = ppp.build();
   compiled_model_ = core_.compile_model(
     model, device, ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY));
+  save_path_ = "imgs";
+  std::filesystem::create_directory("imgs");
 }
 
 std::vector<Detection> YOLOV8::infer(const cv::Mat & bgr_img)
@@ -132,6 +140,84 @@ std::vector<Detection> YOLOV8::parse(double scale, cv::Mat & output) const
   for (const auto & i : indices) detections.emplace_back(ids[i], confidences[i], boxes[i]);
 
   return detections;
+}
+
+std::vector<Detection> YOLOV8::filter(const std::vector<Detection> & detections)
+{
+  if (detections.size() == 0) {
+    return detections;
+  }
+
+  std::vector<Detection> targets;
+  Detection wieghts_target, wood_target;
+  int weights_min_distance = 1e10, wood_min_distance = 1e10;
+
+  int weights_count = 0, wood_count = 0;
+
+  for (auto d : detections) {
+    if (d.class_id == 0) {
+      ++weights_count;
+      if (
+        ((d.center.x - 960) * (d.center.x - 960) + (d.center.y - 540) * (d.center.y - 540)) <
+        weights_min_distance) {
+        wieghts_target = d;
+        weights_min_distance =
+          ((d.center.x - 960) * (d.center.x - 960) + (d.center.y - 540) * (d.center.y - 540));
+      }
+    }
+    if (d.class_id == 1) {
+      ++wood_count;
+      if (
+        ((d.center.x - 960) * (d.center.x - 960) + (d.center.y - 540) * (d.center.y - 540)) <
+        wood_min_distance) {
+        wood_target = d;
+        wood_min_distance =
+          ((d.center.x - 960) * (d.center.x - 960) + (d.center.y - 540) * (d.center.y - 540));
+      }
+    }
+  }
+  if (weights_count == 0) {
+    targets.push_back(wood_target);
+  }
+  if (wood_count == 0) {
+    targets.push_back(wieghts_target);
+  }
+  if (weights_count && wood_count) {
+    targets.push_back(wieghts_target);
+    targets.push_back(wood_target);
+  }
+  tools::logger()->debug("after filter the size of targets:{}", targets.size());
+  return targets;
+}
+
+void YOLOV8::save_img(const cv::Mat & img, const std::vector<Detection> & targets)
+{
+  for (const auto & t : targets) {
+    if (t.confidence < 0.85) {
+      auto file_name = fmt::format("{:%Y-%m-%d_%H-%M-%S}", std::chrono::system_clock::now());
+      auto img_path = fmt::format("{}/{}_{}.jpg", save_path_, classes_[t.class_id], file_name);
+      cv::imwrite(img_path, img);
+      return;
+    }
+  }
+  return;
+}
+
+Eigen::Vector2d YOLOV8::pixel2cam(const std::vector<Detection> & landmarks)
+{
+  if (landmarks.size() == 0) return Eigen::Vector2d(0, 0);
+  Detection landmark;
+  Eigen::Vector2d t_landmark2cam;
+  for (const auto & l : landmarks) {
+    if (l.class_id == 1) {
+      continue;
+    }
+    landmark = l;
+  }
+  t_landmark2cam[0] = std::tan(((landmark.center.x - 960) / 1920) * 87.7) * 0.365;  // 单位m
+  t_landmark2cam[1] =
+    -std::tan(((landmark.center.x - 540) / 1080) * 56.7) * 0.365;  //根据坐标系定义，需要取反
+  return t_landmark2cam;
 }
 
 }  // namespace auto_crane

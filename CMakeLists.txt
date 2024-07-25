@@ -25,5 +25,8 @@ target_link_libraries(capture ${OpenCV_LIBS} io fmt::fmt tools yaml-cpp)
 add_executable(cboard_test examples/cboard_test.cpp)
 target_link_libraries(cboard_test fmt::fmt io tools)
 
+add_executable(usbcamera_test examples/usbcamera_test.cpp)
+target_link_libraries(usbcamera_test ${OpenCV_LIBS} io fmt::fmt tools)
+
 add_executable(crane src/crane.cpp)
 target_link_libraries(crane ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)

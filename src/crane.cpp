@@ -44,15 +44,16 @@ int main(int argc, char * argv[])
   while (!exiter.exit()) {
     cv::Mat img;
     std::vector<auto_crane::Detection> targets;
-    img = usbcam.read();
 
     auto start = std::chrono::steady_clock::now();
 
+    usbcam.read(img, start);
     auto detections = yolo.infer(img);
 
     auto end = std::chrono::steady_clock::now();
+
     auto span = std::chrono::duration<double>(end - start).count();
-    std::cout << "total: " << span * 1e3 << "ms\n";
+    std::cout << "infer + read =: " << span * 1e3 << "ms\n";
 
     sum += span;
     count += 1;

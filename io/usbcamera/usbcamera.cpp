@@ -2,12 +2,16 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include <stdexcept>
+
 #include "tools/logger.hpp"
+
+using namespace std::chrono_literals;
 
 namespace io
 {
 USBCamera::USBCamera(const std::string & open_name, const std::string & config_path)
-: open_name_(open_name)
+: open_name_(open_name), quit_(false), ok_(false), queue_(1)
 {
   auto yaml = YAML::LoadFile(config_path);
   image_width_ = yaml["image_width"].as<double>();
@@ -16,11 +20,28 @@ USBCamera::USBCamera(const std::string & open_name, const std::string & config_p
   usb_frame_rate_ = yaml["usb_frame_rate"].as<double>();
   usb_gamma_ = yaml["usb_gamma_"].as<double>();
   usb_gain_ = yaml["usb_gain_"].as<double>();
-  open();
+  try_open();
+
+  // 守护线程
+  daemon_thread_ = std::thread{[this] {
+    while (!quit_) {
+      std::this_thread::sleep_for(100ms);
+
+      if (ok_) continue;
+
+      if (capture_thread_.joinable()) capture_thread_.join();
+
+      close();
+      try_open();
+    }
+  }};
 }
 
 USBCamera::~USBCamera()
 {
+  quit_ = true;
+  if (daemon_thread_.joinable()) daemon_thread_.join();
+  if (capture_thread_.joinable()) capture_thread_.join();
   close();
   tools::logger()->info("USBCamera destructed.");
 }
@@ -33,6 +54,15 @@ cv::Mat USBCamera::read()
   }
   cap_ >> img_;
   return img_;
+}
+
+void USBCamera::read(cv::Mat & img, std::chrono::steady_clock::time_point & timestamp)
+{
+  CameraData data;
+  queue_.pop(data);
+
+  img = data.img;
+  timestamp = data.timestamp;
 }
 
 void USBCamera::open()
@@ -65,6 +95,28 @@ void USBCamera::open()
   tools::logger()->info("USBCamera fps:{}", cap_.get(cv::CAP_PROP_FPS));
   tools::logger()->info("USBCamera gamma:{}", cap_.get(cv::CAP_PROP_GAMMA));
   // 检查相机是否打开成功
+  // 取图线程
+  capture_thread_ = std::thread{[this] {
+    ok_ = true;
+    while (!quit_) {
+      std::this_thread::sleep_for(1ms);
+
+      cv::Mat img;
+      cap_ >> img;
+      auto timestamp = std::chrono::steady_clock::now();
+
+      queue_.push({img, timestamp});
+    }
+  }};
+}
+
+void USBCamera::try_open()
+{
+  try {
+    open();
+  } catch (const std::exception & e) {
+    tools::logger()->warn("{}", e.what());
+  }
 }
 
 void USBCamera::close() { cap_.release(); }

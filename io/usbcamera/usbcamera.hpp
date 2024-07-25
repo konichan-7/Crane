@@ -16,6 +16,7 @@ public:
   USBCamera(const std::string & open_name, const std::string & config_path);
   ~USBCamera();
   cv::Mat read();
+  void read(cv::Mat & img, std::chrono::steady_clock::time_point & timestamp);
   std::string device_name;
 
 private:
@@ -31,7 +32,12 @@ private:
   int usb_exposure_, usb_frame_rate_, sharpness_;
   double image_width_, image_height_;
   int usb_gamma_, usb_gain_;
+  bool quit_, ok_;
+  std::thread capture_thread_;
+  std::thread daemon_thread_;
+  tools::ThreadSafeQueue<CameraData> queue_;
 
+  void try_open();
   void open();
   void close();
 };

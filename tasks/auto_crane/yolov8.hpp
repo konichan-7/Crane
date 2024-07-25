@@ -1,12 +1,12 @@
-#ifndef YOLO__YOLOV8_HPP
-#define YOLO__YOLOV8_HPP
+#ifndef AUTO_CRANE__YOLOV8_HPP
+#define AUTO_CRANE__YOLOV8_HPP
 
 #include <opencv2/opencv.hpp>
 #include <openvino/openvino.hpp>
 #include <string>
 #include <vector>
 
-namespace yolo
+namespace auto_crane
 {
 struct Detection
 {
@@ -46,6 +46,6 @@ private:
   std::vector<Detection> parse(double scale, cv::Mat & output) const;
 };
 
-}  // namespace yolo
+}  // namespace auto_crane
 
 #endif  // yolo__YOLOV8_HPP

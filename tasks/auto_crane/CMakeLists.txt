@@ -4,7 +4,8 @@ find_package(OpenCV REQUIRED)
 set(OpenVINO_DIR "/opt/intel/openvino_2023.3.0/runtime/cmake")
 find_package(OpenVINO REQUIRED COMPONENTS Runtime)
 
-add_library(yolo OBJECT
-            yolov8.cpp)
+add_library(auto_crane OBJECT
+            yolov8.cpp
+            decider.cpp)
 
-target_link_libraries(yolo openvino::runtime ${OpenCV_LIBS})
+target_link_libraries(auto_crane openvino::runtime ${OpenCV_LIBS} fmt::fmt)

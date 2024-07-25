@@ -5,10 +5,10 @@ namespace io
 {
 struct Command
 {
-  int16_t weights_x;
-  int16_t weights_y;
-  int16_t wood_x;
-  int16_t wood_y;
+  double x;
+  double y;
+  double z;
+  bool grip;
 };
 
 }  // namespace io

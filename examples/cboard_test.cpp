@@ -3,7 +3,6 @@
 #include <chrono>
 #include <thread>
 
-#include "io/command.hpp"
 #include "tools/exiter.hpp"
 
 using namespace std::chrono_literals;

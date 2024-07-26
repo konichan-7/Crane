@@ -59,7 +59,7 @@ int main(int argc, char * argv[])
 
     usbcam.read(img, start);
 
-    t_gripper2odo = (cboard.odom_at(start)).head<2>() / 1e3;  //提取xy坐标
+    t_gripper2odo = cboard.odom_at(start).head<2>();  //提取xy坐标
 
     auto detections = yolo.infer(img);
 
@@ -85,7 +85,7 @@ int main(int argc, char * argv[])
     cv::resize(img, img, {}, 0.5, 0.5);
     cv::imshow("press q to quit", img);
 
-    if (auto key = cv::waitKey(1) == 'q') break;
+    if (cv::waitKey(1) == 'q') break;
   }
 
   std::cout << "avg: " << count / sum << "fps\n";

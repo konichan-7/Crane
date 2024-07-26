@@ -155,37 +155,36 @@ std::vector<Detection> YOLOV8::filter(const std::vector<Detection> & detections)
   int weights_count = 0, wood_count = 0;
 
   for (auto d : detections) {
+    auto distance = std::pow(d.center.x - 960, 2) + std::pow(d.center.y - 540, 2);
     if (d.class_id == 0) {
       ++weights_count;
-      if (
-        ((d.center.x - 960) * (d.center.x - 960) + (d.center.y - 540) * (d.center.y - 540)) <
-        weights_min_distance) {
+      if (distance < weights_min_distance) {
         wieghts_target = d;
-        weights_min_distance =
-          ((d.center.x - 960) * (d.center.x - 960) + (d.center.y - 540) * (d.center.y - 540));
+        weights_min_distance = distance;
       }
     }
     if (d.class_id == 1) {
       ++wood_count;
-      if (
-        ((d.center.x - 960) * (d.center.x - 960) + (d.center.y - 540) * (d.center.y - 540)) <
-        wood_min_distance) {
+      if (distance < wood_min_distance) {
         wood_target = d;
-        wood_min_distance =
-          ((d.center.x - 960) * (d.center.x - 960) + (d.center.y - 540) * (d.center.y - 540));
+        wood_min_distance = distance;
       }
     }
   }
+
   if (weights_count == 0) {
     targets.push_back(wood_target);
   }
+
   if (wood_count == 0) {
     targets.push_back(wieghts_target);
   }
-  if (weights_count && wood_count) {
+
+  if (weights_count > 0 && wood_count > 0) {
     targets.push_back(wieghts_target);
     targets.push_back(wood_target);
   }
+
   tools::logger()->debug("after filter the size of targets:{}", targets.size());
   return targets;
 }
@@ -206,6 +205,7 @@ void YOLOV8::save_img(const cv::Mat & img, const std::vector<Detection> & target
 Landmark YOLOV8::pixel2cam(const std::vector<Detection> & landmarks)
 {
   if (landmarks.size() == 0) return Landmark{Eigen::Vector2d{0.0, 0.0}, "invalid"};
+
   Detection landmark;
   Eigen::Vector2d t_landmark2cam;
   for (const auto & l : landmarks) {
@@ -214,7 +214,7 @@ Landmark YOLOV8::pixel2cam(const std::vector<Detection> & landmarks)
     }
     landmark = l;
   }
-  t_landmark2cam[0] = std::tan(((landmark.center.x - 960) / 1920) * 87.7) * 0.365;  // 单位m
+  t_landmark2cam[0] = std::tan(((landmark.center.x - 960.0) / 1920.0) * 87.7) * 0.365;  // 单位m
   t_landmark2cam[1] =
     -std::tan(((landmark.center.x - 540) / 1080) * 56.7) * 0.365;  //根据坐标系定义，需要取反
   return Landmark{t_landmark2cam, "weights"};

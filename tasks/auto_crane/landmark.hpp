@@ -5,9 +5,6 @@
 
 namespace auto_crane
 {
-enum landmarkname
-{
-};
 struct Landmark
 {
   Eigen::Vector2d t_landmark2cam;
@@ -19,6 +16,7 @@ struct Target
   Eigen::Vector2d t_target2map;
   std::string name;
 };
+
 }  // namespace auto_crane
 
 #endif

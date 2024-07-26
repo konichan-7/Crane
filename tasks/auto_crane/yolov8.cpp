@@ -150,7 +150,7 @@ std::vector<Detection> YOLOV8::filter(const std::vector<Detection> & detections)
 
   std::vector<Detection> targets;
   Detection wieghts_target, wood_target;
-  int weights_min_distance = 1e10, wood_min_distance = 1e10;
+  int weights_min_distance = 1e6, wood_min_distance = 1e6;
 
   int weights_count = 0, wood_count = 0;
 

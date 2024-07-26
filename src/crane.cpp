@@ -6,6 +6,7 @@
 #include "io/command.hpp"
 #include "io/usbcamera/usbcamera.hpp"
 #include "tasks/auto_crane/decider.hpp"
+#include "tasks/auto_crane/localizer.hpp"
 #include "tasks/auto_crane/matcher.hpp"
 #include "tasks/auto_crane/yolov8.hpp"
 #include "tools/exiter.hpp"
@@ -39,8 +40,9 @@ int main(int argc, char * argv[])
   auto_crane::YOLOV8 yolo("assets/openvino_model_v3/best.xml", classes.size(), classes, "AUTO");
   auto_crane::Decider decider(classes);
   auto_crane::Matcher matcher(config_path);
+  auto_crane::Localizer localizer(config_path);
 
-  Eigen::Vector2d t_landmark2cam, t_gripper2odo, t_odo2map;
+  Eigen::Vector2d t_landmark2cam, t_gripper2odo, t_odo2map, t_landmark2map;
 
   auto sum = 0.0;
   auto count = 0;
@@ -53,6 +55,9 @@ int main(int argc, char * argv[])
     auto start = std::chrono::steady_clock::now();
 
     usbcam.read(img, start);
+
+    t_gripper2odo = (cboard.odom_at(start)).head<2>();
+
     auto detections = yolo.infer(img);
 
     auto end = std::chrono::steady_clock::now();
@@ -64,12 +69,16 @@ int main(int argc, char * argv[])
     count += 1;
 
     landmarks = yolo.filter(detections);
+
     yolo.save_img(img, landmarks);
+
     t_landmark2cam = yolo.pixel2cam(landmarks);
 
-    t_odo2map = matcher.match(t_landmark2cam, t_gripper2odo);
+    t_odo2map = matcher.match(t_landmark2cam, t_gripper2odo, t_landmark2map);
 
-    auto_crane::draw_detections(img, detections, classes);
+    t_odo2map = localizer.update_coordinate_error(t_odo2map);
+
+        auto_crane::draw_detections(img, detections, classes);
     cv::resize(img, img, {}, 0.5, 0.5);
     cv::imshow("press q to quit", img);
 

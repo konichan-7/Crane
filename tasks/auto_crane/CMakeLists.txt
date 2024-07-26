@@ -10,6 +10,7 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 add_library(auto_crane OBJECT
             yolov8.cpp
             decider.cpp
-            matcher.cpp)
+            matcher.cpp
+            localizer.cpp)
 
 target_link_libraries(auto_crane openvino::runtime ${OpenCV_LIBS} fmt::fmt)

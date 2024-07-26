@@ -13,11 +13,14 @@ class Localizer
 public:
   Localizer(const std::string & config_path);
 
+  Eigen::Vector2d update_coordinate_error(const Eigen::Vector2d & t_odo2map);
+
 private:
-  tools::ExtendedKalmanFilter efk_;
-  double t_odo2map_x0_, t_odo2map_y0_, noise0_;
+  tools::ExtendedKalmanFilter ekf_;
+  double t_odo2map_x0_, t_odo2map_y0_, state_cov0_, process_noise_, measurement_noise_;
   Eigen::Vector2d x0_;
   Eigen::MatrixXd p0_;
+  Eigen::MatrixXd F_, Q_, R_, H_;
 };
 }  // namespace auto_crane
 

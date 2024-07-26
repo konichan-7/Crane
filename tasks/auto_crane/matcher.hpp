@@ -12,7 +12,8 @@ class Matcher
 public:
   Matcher(const std::string & config_path);
   Eigen::Vector2d match(
-    const Eigen::Vector2d & t_landmark2cam, const Eigen::Vector2d & t_gripper2odo);
+    const Eigen::Vector2d & t_landmark2cam, const Eigen::Vector2d & t_gripper2odo,
+    Eigen::Vector2d & t_landmark2map);
 
 private:
   struct Point_
@@ -23,6 +24,7 @@ private:
 
   double x_cam2gripper_;
   double y_cam2gripper_;
+  double judge_distance_;
   std::array<Point_, 12> landmark_points_;
   constexpr double pi() { return std::atan(1) * 4; }
   constexpr double deg_to_rad(double degrees) { return degrees * pi() / 180.0; }

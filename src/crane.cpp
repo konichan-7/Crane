@@ -42,7 +42,10 @@ int main(int argc, char * argv[])
   auto_crane::Matcher matcher(config_path);
   auto_crane::Localizer localizer(config_path);
 
-  Eigen::Vector2d t_landmark2cam, t_gripper2odo, t_odo2map, t_landmark2map;
+  Eigen::Vector2d t_landmark2cam, t_gripper2odo, t_odo2map, t_target2map;
+
+  auto_crane::Landmark landmark;
+  auto_crane::Target target;
 
   auto sum = 0.0;
   auto count = 0;
@@ -56,7 +59,7 @@ int main(int argc, char * argv[])
 
     usbcam.read(img, start);
 
-    t_gripper2odo = (cboard.odom_at(start)).head<2>();
+    t_gripper2odo = (cboard.odom_at(start)).head<2>() / 1e3;  //提取xy坐标
 
     auto detections = yolo.infer(img);
 
@@ -72,13 +75,13 @@ int main(int argc, char * argv[])
 
     yolo.save_img(img, landmarks);
 
-    t_landmark2cam = yolo.pixel2cam(landmarks);
+    landmark = yolo.pixel2cam(landmarks);
 
-    t_odo2map = matcher.match(t_landmark2cam, t_gripper2odo, t_landmark2map);
+    t_odo2map = matcher.match(landmark, t_gripper2odo, target);
 
     t_odo2map = localizer.update_coordinate_error(t_odo2map);
 
-        auto_crane::draw_detections(img, detections, classes);
+    auto_crane::draw_detections(img, detections, classes);
     cv::resize(img, img, {}, 0.5, 0.5);
     cv::imshow("press q to quit", img);
 

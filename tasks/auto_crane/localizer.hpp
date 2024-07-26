@@ -1,5 +1,5 @@
-#ifndef AUTO_CRANE_LOCALIZER_HPP
-#define AUTO_CRANE_LOCALIZER_HPP
+#ifndef AUTO_CRANE__LOCALIZER_HPP
+#define AUTO_CRANE__LOCALIZER_HPP
 
 #include <string>
 

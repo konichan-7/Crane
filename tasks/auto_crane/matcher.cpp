@@ -2,6 +2,8 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include "../../tools/logger.hpp"
+
 namespace auto_crane
 {
 
@@ -15,29 +17,31 @@ Matcher::Matcher(const std::string & config_path)
 }
 
 Eigen::Vector2d Matcher::match(
-  const Eigen::Vector2d & t_landmark2cam, const Eigen::Vector2d & t_gripper2odo,
-  Eigen::Vector2d & t_landmark2map)
+  const Landmark & landmark, const Eigen::Vector2d & t_gripper2odo, Target & target)
 {
-  if (t_landmark2cam[0] == 0 && t_landmark2cam[1] == 0) return Eigen::Vector2d(0, 0);
+  if (landmark.name == "invalid") return Eigen::Vector2d(0, 0);  //此时没有识别到合适的路标
   Eigen::Vector2d t_landmark2odo;
-  t_landmark2odo[0] = t_landmark2cam[0] + x_cam2gripper_ + t_gripper2odo[0];
-  t_landmark2odo[1] = t_landmark2cam[1] + y_cam2gripper_ + t_gripper2odo[1];
+  t_landmark2odo[0] = landmark.t_landmark2cam[0] + x_cam2gripper_ + t_gripper2odo[0];
+  t_landmark2odo[1] = landmark.t_landmark2cam[1] + y_cam2gripper_ + t_gripper2odo[1];
   int count = 0;
   for (const auto & l : landmark_points_) {
     if (
       (t_landmark2odo[0] - l.x) * (t_landmark2odo[0] - l.x) +
         (t_landmark2odo[1] - l.y) * (t_landmark2odo[1] - l.y) <
       judge_distance_) {
-      t_landmark2map[0] = l.x;
-      t_landmark2map[1] = l.y;
+      target.t_target2map[0] = l.x;
+      target.t_target2map[1] = l.y;
+      target.name = "weights";
       ++count;
     }
   }
   if (count == 0) {  //此时匹配失败
-    t_landmark2map << 0, 0;
+    target.t_target2map << 0, 0;
+    target.name = "invalid";
+    tools::logger()->info("falied to match landmarks!");
     return Eigen::Vector2d{1e6, 1e6};
   } else
-    return (t_landmark2odo - t_landmark2map);  //t_odo2map
+    return (t_landmark2odo - target.t_target2map);  //t_odo2map
 }
 
 }  // namespace auto_crane

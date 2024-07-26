@@ -203,9 +203,9 @@ void YOLOV8::save_img(const cv::Mat & img, const std::vector<Detection> & target
   return;
 }
 
-Eigen::Vector2d YOLOV8::pixel2cam(const std::vector<Detection> & landmarks)
+Landmark YOLOV8::pixel2cam(const std::vector<Detection> & landmarks)
 {
-  if (landmarks.size() == 0) return Eigen::Vector2d(0, 0);
+  if (landmarks.size() == 0) return Landmark{Eigen::Vector2d{0.0, 0.0}, "invalid"};
   Detection landmark;
   Eigen::Vector2d t_landmark2cam;
   for (const auto & l : landmarks) {
@@ -217,7 +217,7 @@ Eigen::Vector2d YOLOV8::pixel2cam(const std::vector<Detection> & landmarks)
   t_landmark2cam[0] = std::tan(((landmark.center.x - 960) / 1920) * 87.7) * 0.365;  // 单位m
   t_landmark2cam[1] =
     -std::tan(((landmark.center.x - 540) / 1080) * 56.7) * 0.365;  //根据坐标系定义，需要取反
-  return t_landmark2cam;
+  return Landmark{t_landmark2cam, "weights"};
 }
 
 }  // namespace auto_crane

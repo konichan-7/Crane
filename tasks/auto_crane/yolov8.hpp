@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "landmark.hpp"
+
 namespace auto_crane
 {
 struct Detection
@@ -43,7 +45,7 @@ public:
 
   void save_img(const cv::Mat & img, const std::vector<Detection> & targets);
 
-  Eigen::Vector2d pixel2cam(const std::vector<Detection> & landmarks);
+  Landmark pixel2cam(const std::vector<Detection> & landmarks);
 
 private:
   int class_num_;

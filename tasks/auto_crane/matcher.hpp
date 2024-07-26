@@ -4,6 +4,8 @@
 #include <Eigen/Dense>
 #include <string>
 
+#include "landmark.hpp"
+
 namespace auto_crane
 {
 
@@ -12,8 +14,8 @@ class Matcher
 public:
   Matcher(const std::string & config_path);
   Eigen::Vector2d match(
-    const Eigen::Vector2d & t_landmark2cam, const Eigen::Vector2d & t_gripper2odo,
-    Eigen::Vector2d & t_landmark2map);
+    const Landmark & landmark, const Eigen::Vector2d & t_gripper2odo,
+    Target & target);
 
 private:
   struct Point_

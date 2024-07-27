@@ -17,7 +17,6 @@ struct Detection
   float confidence;
   cv::Rect box;
   cv::Point2i center;
-  std::string name;
 
   Detection(int class_id, float confidence, const cv::Rect & box)
   : class_id(class_id),

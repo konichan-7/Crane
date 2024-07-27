@@ -17,7 +17,7 @@ public:
   std::vector<Landmark> solve(std::vector<Detection> & filtered_detections);
 
 private:
-  double weights_height_, wood_height_;  // 此时不考虑木桩高低的影响
+  double weights_height_, wood_height_, white_height_;  // 此时不考虑木桩高低的影响
 };
 }  // namespace auto_crane
 

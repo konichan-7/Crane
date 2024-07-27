@@ -9,6 +9,7 @@ enum LandmarkName
 {
   WEIGHTS,
   WOOD,
+  WHITE,
   INVALID
 };
 
@@ -17,6 +18,7 @@ enum TargetName
   WEIGHT,
   SHORT_WOOD,
   TALL_WOOD,
+  CENTER
 };
 
 struct Landmark

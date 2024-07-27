@@ -163,7 +163,7 @@ std::vector<Detection> YOLOV8::filter(const std::vector<Detection> & detections)
         weights_min_distance = distance;
       }
     }
-    if (d.class_id == 1) {
+    if (d.class_id == 2) {
       ++wood_count;
       if (distance < wood_min_distance) {
         wood_target = d;

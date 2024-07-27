@@ -16,7 +16,7 @@
 
 const std::string keys =
   "{help h usage ?  |                        | 输出命令行参数说明 }"
-  "{name n          |video0                  | 端口名称 }"
+  "{name n          |         video0         | 端口名称 }"
   "{@config-path    | configs/usbcamera.yaml | 位置参数，yaml配置文件路径 }"
   "{output-folder o | negative/              | 输出文件夹路径   }";
 
@@ -35,9 +35,9 @@ int main(int argc, char * argv[])
 
   io::USBCamera usbcam(device_name, config_path);
   io::CBoard cboard("can0");
-  io::Command command;
   tools::Exiter exiter;
   tools::Plotter plotter;
+
   auto_crane::YOLOV8 yolo("assets/openvino_model_v4/best.xml", classes.size(), classes, "AUTO");
   auto_crane::Solver solver(config_path);
   auto_crane::Matcher matcher(config_path);
@@ -52,13 +52,14 @@ int main(int argc, char * argv[])
 
   while (!exiter.exit()) {
     cv::Mat img;
+    std::chrono::steady_clock::time_point t;
     std::vector<auto_crane::Target> targets;
 
     auto start = std::chrono::steady_clock::now();
 
-    usbcam.read(img, start);
+    usbcam.read(img, t);
 
-    t_gripper2odo = cboard.odom_at(start).head<2>();  //提取xy坐标
+    t_gripper2odo = cboard.odom_at(t).head<2>();  //提取xy坐标
 
     auto detections = yolo.infer(img);
 
@@ -79,6 +80,11 @@ int main(int argc, char * argv[])
     matcher.match(landmarks, t_gripper2odo, targets, t_odo2map);
 
     t_odo2map = localizer.localize(t_odo2map);
+
+    auto command = decider.decide(t_gripper2odo, t_odo2map, targets);
+
+    tools::logger()->debug(
+      "command is:{:.2f},{:.2f},{:.2f},{}", command.x, command.y, command.z, command.grip);
 
     auto_crane::draw_detections(img, detections, classes);
     cv::resize(img, img, {}, 0.5, 0.5);

@@ -3,13 +3,13 @@ image_height: 1080
 fov_h: 87.7
 fov_v: 56.7 
 usb_frame_rate: 60
-usb_exposure: 500 #1-80000______250
+usb_exposure: 500 # 1-80000
 usb_gamma_: 160
-usb_gain_: 10 #0-96
+usb_gain_: 10 # 0-96
 
 x_cam2gripper: 55
 y_cam2gripper: 55
-judge_distance: 0.02
+judge_distance: 0.02 # 单位m^2
 
 t_odo2map_x0: 0.01
 t_odo2map_y0: 0.01
@@ -17,3 +17,11 @@ state_cov0: 10.0
 process_noise: 1.0
 measurement_noise: 1.0
 
+safe_height: 0.25
+crawl_height: 0.25
+short_place_height_: 0.25
+tall_place_height: 0.3
+
+weights_height: 0.365 # 相机坐标系下
+short_wood_height: 0.2
+tall_wood_height: 0.1

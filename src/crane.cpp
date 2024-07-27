@@ -8,16 +8,17 @@
 #include "tasks/auto_crane/decider.hpp"
 #include "tasks/auto_crane/localizer.hpp"
 #include "tasks/auto_crane/matcher.hpp"
+#include "tasks/auto_crane/solver.hpp"
 #include "tasks/auto_crane/yolov8.hpp"
 #include "tools/exiter.hpp"
 #include "tools/logger.hpp"
 #include "tools/plotter.hpp"
 
 const std::string keys =
-  "{help h usage ? |                        | 输出命令行参数说明 }"
-  "{name n         |video0| 端口名称 }"
-  "{@config-path   | configs/usbcamera.yaml | 位置参数，yaml配置文件路径 }"
-  "{output-folder o | negative/   | 输出文件夹路径   }";
+  "{help h usage ?  |                        | 输出命令行参数说明 }"
+  "{name n          |video0                  | 端口名称 }"
+  "{@config-path    | configs/usbcamera.yaml | 位置参数，yaml配置文件路径 }"
+  "{output-folder o | negative/              | 输出文件夹路径   }";
 
 int main(int argc, char * argv[])
 {
@@ -38,14 +39,12 @@ int main(int argc, char * argv[])
   tools::Exiter exiter;
   tools::Plotter plotter;
   auto_crane::YOLOV8 yolo("assets/openvino_model_v3/best.xml", classes.size(), classes, "AUTO");
-  auto_crane::Decider decider(config_path);
+  auto_crane::Solver solver(config_path);
   auto_crane::Matcher matcher(config_path);
   auto_crane::Localizer localizer(config_path);
+  auto_crane::Decider decider(config_path);
 
   Eigen::Vector2d t_landmark2cam, t_gripper2odo, t_odo2map, t_target2map;
-
-  auto_crane::Landmark landmark;
-  auto_crane::Target target;
 
   auto sum = 0.0;
   auto count = 0;
@@ -53,7 +52,7 @@ int main(int argc, char * argv[])
 
   while (!exiter.exit()) {
     cv::Mat img;
-    std::vector<auto_crane::Detection> landmarks;
+    std::vector<auto_crane::Target> targets;
 
     auto start = std::chrono::steady_clock::now();
 
@@ -71,15 +70,15 @@ int main(int argc, char * argv[])
     sum += span;
     count += 1;
 
-    landmarks = yolo.filter(detections);
+    yolo.save_img(img, detections);
 
-    yolo.save_img(img, landmarks);
+    auto filtered_detections = yolo.filter(detections);
 
-    landmark = yolo.pixel2cam(landmarks);
+    auto landmarks = solver.solve(filtered_detections);
 
-    t_odo2map = matcher.match(landmark, t_gripper2odo, target);
+    matcher.match(landmarks, t_gripper2odo, targets, t_odo2map);
 
-    t_odo2map = localizer.update_coordinate_error(t_odo2map);
+    t_odo2map = localizer.localize(t_odo2map);
 
     auto_crane::draw_detections(img, detections, classes);
     cv::resize(img, img, {}, 0.5, 0.5);

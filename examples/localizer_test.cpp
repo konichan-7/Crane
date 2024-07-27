@@ -65,7 +65,7 @@ int main(int argc, char * argv[])
     data["gripper_y_in_odom"] = odom[1];
     data["gripper_z_in_odom"] = odom[2];
 
-    if (landmark.name != "invalid") {
+    if (landmark.name != auto_crane::LandmarkName::INVALID) {
       data["landmark_x_in_cam"] = landmark.t_landmark2cam[0];
       data["landmark_y_in_cam"] = landmark.t_landmark2cam[1];
     }

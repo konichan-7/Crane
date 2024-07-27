@@ -17,6 +17,7 @@ struct Detection
   float confidence;
   cv::Rect box;
   cv::Point2i center;
+  std::string name;
 
   Detection(int class_id, float confidence, const cv::Rect & box)
   : class_id(class_id),
@@ -43,9 +44,9 @@ public:
 
   std::vector<Detection> filter(const std::vector<Detection> & detections);
 
-  void save_img(const cv::Mat & img, const std::vector<Detection> & targets);
+  void save_img(const cv::Mat & img, const std::vector<Detection> & detections);
 
-  Landmark pixel2cam(const std::vector<Detection> & landmarks);
+  Landmark pixel2cam(const std::vector<Detection> & detections);
 
 private:
   int class_num_;

@@ -189,12 +189,12 @@ std::vector<Detection> YOLOV8::filter(const std::vector<Detection> & detections)
   return targets;
 }
 
-void YOLOV8::save_img(const cv::Mat & img, const std::vector<Detection> & targets)
+void YOLOV8::save_img(const cv::Mat & img, const std::vector<Detection> & detections)
 {
-  for (const auto & t : targets) {
-    if (t.confidence < 0.85) {
+  for (const auto & d : detections) {
+    if (d.confidence < 0.85) {
       auto file_name = fmt::format("{:%Y-%m-%d_%H-%M-%S}", std::chrono::system_clock::now());
-      auto img_path = fmt::format("{}/{}_{}.jpg", save_path_, classes_[t.class_id], file_name);
+      auto img_path = fmt::format("{}/{}_{}.jpg", save_path_, classes_[d.class_id], file_name);
       cv::imwrite(img_path, img);
       return;
     }
@@ -204,7 +204,7 @@ void YOLOV8::save_img(const cv::Mat & img, const std::vector<Detection> & target
 
 Landmark YOLOV8::pixel2cam(const std::vector<Detection> & landmarks)
 {
-  if (landmarks.size() == 0) return Landmark{Eigen::Vector2d{0.0, 0.0}, "invalid"};
+  if (landmarks.size() == 0) return Landmark{Eigen::Vector2d{0.0, 0.0}, LandmarkName::INVALID};
 
   Detection landmark;
   Eigen::Vector2d t_landmark2cam;
@@ -221,7 +221,7 @@ Landmark YOLOV8::pixel2cam(const std::vector<Detection> & landmarks)
   t_landmark2cam[0] = std::tan(angle_h) * 0.365;   // 单位m
   t_landmark2cam[1] = -std::tan(angle_v) * 0.365;  //根据坐标系定义，需要取反
 
-  return Landmark{t_landmark2cam, "weights"};
+  return Landmark{t_landmark2cam, LandmarkName::WEIGHTS};
 }
 
 }  // namespace auto_crane

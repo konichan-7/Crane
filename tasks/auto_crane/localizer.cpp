@@ -24,7 +24,7 @@ Localizer::Localizer(const std::string & config_path)
   H_ << 1.0, 0.0, 0.0, 1.0;
 }
 
-Eigen::Vector2d Localizer::update_coordinate_error(const Eigen::Vector2d & t_odo2map)
+Eigen::Vector2d Localizer::localize(const Eigen::Vector2d & t_odo2map)
 {
   if (t_odo2map[0] == 1e6) return t_odo2map;  //此时无法匹配路标，不进行更新
   ekf_.predict(F_, Q_);

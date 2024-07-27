@@ -5,16 +5,30 @@
 
 namespace auto_crane
 {
+enum LandmarkName
+{
+  WEIGHTS,
+  WOOD,
+  INVALID
+};
+
+enum TargetName
+{
+  WEIGHT,
+  SHORT_WOOD,
+  TALL_WOOD,
+};
+
 struct Landmark
 {
   Eigen::Vector2d t_landmark2cam;
-  std::string name;
+  LandmarkName name;
 };
 
 struct Target
 {
   Eigen::Vector2d t_target2map;
-  std::string name;
+  TargetName name;
 };
 
 }  // namespace auto_crane

@@ -11,6 +11,7 @@ add_library(auto_crane OBJECT
             yolov8.cpp
             decider.cpp
             matcher.cpp
-            localizer.cpp)
+            localizer.cpp
+            solver.cpp)
 
 target_link_libraries(auto_crane openvino::runtime ${OpenCV_LIBS} fmt::fmt)

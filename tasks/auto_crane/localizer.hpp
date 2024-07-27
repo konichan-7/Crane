@@ -13,7 +13,7 @@ class Localizer
 public:
   Localizer(const std::string & config_path);
 
-  Eigen::Vector2d update_coordinate_error(const Eigen::Vector2d & t_odo2map);
+  Eigen::Vector2d localize(const Eigen::Vector2d & t_odo2map);
 
 private:
   tools::ExtendedKalmanFilter ekf_;

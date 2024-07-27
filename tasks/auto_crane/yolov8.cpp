@@ -214,9 +214,13 @@ Landmark YOLOV8::pixel2cam(const std::vector<Detection> & landmarks)
     }
     landmark = l;
   }
-  t_landmark2cam[0] = std::tan(((landmark.center.x - 960.0) / 1920.0) * 87.7) * 0.365;  // 单位m
-  t_landmark2cam[1] =
-    -std::tan(((landmark.center.x - 540) / 1080) * 56.7) * 0.365;  //根据坐标系定义，需要取反
+
+  auto angle_h = (landmark.center.x - 960.0) / 1920.0 * 87.7 / 57.3;
+  auto angle_v = (landmark.center.y - 540.0) / 1080.0 * 56.7 / 57.3;
+
+  t_landmark2cam[0] = std::tan(angle_h) * 0.365;   // 单位m
+  t_landmark2cam[1] = -std::tan(angle_v) * 0.365;  //根据坐标系定义，需要取反
+
   return Landmark{t_landmark2cam, "weights"};
 }
 

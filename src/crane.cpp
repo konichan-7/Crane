@@ -31,14 +31,14 @@ int main(int argc, char * argv[])
   auto device_name = cli.get<std::string>("name");
   auto output_folder = cli.get<std::string>("output-folder");
   auto config_path = cli.get<std::string>(0);
-  std::vector<std::string> classes = {"weights", "wood"};
+  std::vector<std::string> classes = {"weights", "white", "wood"};
 
   io::USBCamera usbcam(device_name, config_path);
   io::CBoard cboard("can0");
   io::Command command;
   tools::Exiter exiter;
   tools::Plotter plotter;
-  auto_crane::YOLOV8 yolo("assets/openvino_model_v3/best.xml", classes.size(), classes, "AUTO");
+  auto_crane::YOLOV8 yolo("assets/openvino_model_v4/best.xml", classes.size(), classes, "AUTO");
   auto_crane::Solver solver(config_path);
   auto_crane::Matcher matcher(config_path);
   auto_crane::Localizer localizer(config_path);

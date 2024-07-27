@@ -40,6 +40,8 @@ Eigen::Vector3d CBoard::odom_at(std::chrono::steady_clock::time_point t)
 
 void CBoard::send(Command command) const
 {
+  command.y = -command.y;
+
   can_frame frame;
   frame.can_id = 0x100;
   frame.can_dlc = 8;
@@ -67,6 +69,8 @@ void CBoard::callback(const can_frame & frame)
   auto x = (int16_t)(frame.data[0] << 8 | frame.data[1]) / 1e3;
   auto y = (int16_t)(frame.data[2] << 8 | frame.data[3]) / 1e3;
   auto z = (int16_t)(frame.data[4] << 8 | frame.data[5]) / 1e3;
+
+  y = -y;
 
   queue_.push({{x, y, z}, t});
 }

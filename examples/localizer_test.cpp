@@ -9,6 +9,7 @@
 #include "io/usbcamera/usbcamera.hpp"
 #include "tasks/auto_crane/decider.hpp"
 #include "tasks/auto_crane/matcher.hpp"
+#include "tasks/auto_crane/solver.hpp"
 #include "tasks/auto_crane/yolov8.hpp"
 #include "tools/exiter.hpp"
 #include "tools/logger.hpp"
@@ -41,14 +42,13 @@ int main(int argc, char * argv[])
 
   auto_crane::YOLOV8 yolo("assets/openvino_model_v3/best.xml", classes.size(), classes, "AUTO");
   auto_crane::Decider decider(config_path);
+  auto_crane::Solver solver(config_path);
   auto_crane::Matcher matcher(config_path);
   auto_crane::Localizer localizer(config_path);
 
   while (!exiter.exit()) {
     cv::Mat img;
-
     std::chrono::steady_clock::time_point t;
-    std::vector<auto_crane::Detection> landmarks;
 
     usbcam.read(img, t);
     Eigen::Vector3d odom = cboard.odom_at(t);
@@ -56,7 +56,11 @@ int main(int argc, char * argv[])
     auto detections = yolo.infer(img);
     yolo.save_img(img, detections);
 
-    auto landmark = yolo.pixel2cam(detections);
+    auto landmarks = solver.solve(detections);
+
+    std::vector<auto_crane::Target> targets;
+    Eigen::Vector2d t_odo2map;
+    matcher.match(landmarks, odom.head<2>(), targets, t_odo2map);
 
     // -------------------- 调试输出 --------------------
 
@@ -65,10 +69,10 @@ int main(int argc, char * argv[])
     data["gripper_y_in_odom"] = odom[1];
     data["gripper_z_in_odom"] = odom[2];
 
-    if (landmark.name != auto_crane::LandmarkName::INVALID) {
-      data["landmark_x_in_cam"] = landmark.t_landmark2cam[0];
-      data["landmark_y_in_cam"] = landmark.t_landmark2cam[1];
-    }
+    // if (landmark.name != auto_crane::LandmarkName::INVALID) {
+    //   data["landmark_x_in_cam"] = landmark.t_landmark2cam[0];
+    //   data["landmark_y_in_cam"] = landmark.t_landmark2cam[1];
+    // }
     plotter.plot(data);
 
     auto_crane::draw_detections(img, detections, classes);

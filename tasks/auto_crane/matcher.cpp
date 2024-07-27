@@ -14,7 +14,7 @@ Matcher::Matcher(const std::string & config_path)
   y_cam2gripper_ = yaml["y_cam2gripper"].as<double>();
   judge_distance_ = yaml["judge_distance"].as<double>();  // 单位m^2
   t_cam2gripper_ = {x_cam2gripper_, y_cam2gripper_};
-  weights_landmark_points_ = generate_points(1200, 0, 375, 750);
+  weights_landmark_points_ = generate_points(1.2, 0, 0.375, 0.75);
   wood_landmark_points_ = generate_points();
 }
 
@@ -43,7 +43,6 @@ void Matcher::match(
       Target target;
       for (const auto & l : weights_landmark_points_) {
         auto error_distance = (t_landmark2odo_weights - l).squaredNorm();
-        tools::logger()->info("success to match, the error_distance is:{.2f}", error_distance);
 
         if (error_distance < judge_distance_) {
           target.t_target2map = l;
@@ -51,6 +50,7 @@ void Matcher::match(
           targets.push_back(target);
           t_odo2map1 = target.t_target2map - t_landmark2odo_weights;
           ++count;
+          tools::logger()->info("weight matched, the error_distance is: {:.2f}", error_distance);
         }
       }
     }
@@ -62,7 +62,7 @@ void Matcher::match(
       for (const auto & w : wood_landmark_points_) {
         auto error_distance = (t_landmark2odo_wood - w).squaredNorm();
         if (error_distance < judge_distance_) {
-          tools::logger()->info("success to match, the error_distance is:{.2f}", error_distance);
+          tools::logger()->info("wood matched, the error_distance is: {:.2f}", error_distance);
           target.t_target2map = w;
 
           target.name =

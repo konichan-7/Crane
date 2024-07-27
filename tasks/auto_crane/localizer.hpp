@@ -19,8 +19,8 @@ private:
   tools::ExtendedKalmanFilter ekf_;
   double t_odo2map_x0_, t_odo2map_y0_, state_cov0_, process_noise_, measurement_noise_;
   Eigen::Vector2d x0_;
-  Eigen::MatrixXd p0_;
-  Eigen::MatrixXd F_, Q_, R_, H_;
+  Eigen::Matrix2d p0_;
+  Eigen::Matrix2d F_, Q_, R_, H_;
 };
 }  // namespace auto_crane
 

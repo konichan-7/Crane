@@ -38,11 +38,13 @@ void Matcher::match(
     if (landmark.name == LandmarkName::WEIGHTS) {
       // 计算路标在odo系下的坐标
       t_landmark2odo_weights = landmark.t_landmark2cam + t_cam2gripper_ + t_gripper2odo;
+
       // 通过遍历砝码可能的位置匹配出map系下的坐标
       Target target;
       for (const auto & l : weights_landmark_points_) {
         auto error_distance = (t_landmark2odo_weights - l).squaredNorm();
-        tools::logger()->info("success to match,the error_distance is:{.2f}", error_distance);
+        tools::logger()->info("success to match, the error_distance is:{.2f}", error_distance);
+
         if (error_distance < judge_distance_) {
           target.t_target2map = l;
           target.name = TargetName::WEIGHT;
@@ -51,16 +53,21 @@ void Matcher::match(
           ++count;
         }
       }
-    } else if (landmark.name == LandmarkName::WOOD) {
+    }
+
+    else if (landmark.name == LandmarkName::WOOD) {
       t_landmark2odo_wood = landmark.t_landmark2cam + t_cam2gripper_ + t_gripper2odo;
+
       Target target;
       for (const auto & w : wood_landmark_points_) {
         auto error_distance = (t_landmark2odo_wood - w).squaredNorm();
         if (error_distance < judge_distance_) {
-          tools::logger()->info("success to match,the error_distance is:{.2f}", error_distance);
+          tools::logger()->info("success to match, the error_distance is:{.2f}", error_distance);
           target.t_target2map = w;
-          if (target.t_target2map[1] == 0) target.name = TargetName::SHORT_WOOD;  // 此时为短木桩
-          target.name = TargetName::TALL_WOOD;
+
+          target.name =
+            (target.t_target2map[1] == 0) ? TargetName::SHORT_WOOD : TargetName::TALL_WOOD;
+
           targets.push_back(target);
           t_odo2map2 = target.t_target2map - t_landmark2odo_wood;
           ++count;

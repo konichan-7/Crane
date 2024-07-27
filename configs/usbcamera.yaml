@@ -18,8 +18,8 @@ process_noise: 1.0
 measurement_noise: 1.0
 
 safe_height: 0.25
-crawl_height: 0.25
-short_place_height_: 0.25
+crawl_height: -0.234
+short_place_height: 0.25
 tall_place_height: 0.3
 
 weights_height: 0.365 # 相机坐标系下

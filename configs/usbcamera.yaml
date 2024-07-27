@@ -9,7 +9,7 @@ usb_gain_: 10 # 0-96
 
 x_cam2gripper: 0.04
 y_cam2gripper: 0.08
-judge_distance: 0.02 # 单位m^2
+judge_distance: 0.5 # 单位m
 
 t_odo2map_x0: 0.01
 t_odo2map_y0: 0.01

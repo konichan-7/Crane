@@ -32,7 +32,7 @@ void Matcher::match(
   int count = 0;
   Eigen::Vector2d t_landmark2odo_weights;
   Eigen::Vector2d t_landmark2odo_wood;
-  Eigen::Vector2d t_odo2map1 = {0, 0}, t_odo2map2{0, 0};
+  Eigen::Vector2d t_odo2map1{0, 0}, t_odo2map2{0, 0};
 
   for (const auto & landmark : landmarks) {
     if (landmark.name == LandmarkName::WEIGHTS) {
@@ -42,15 +42,14 @@ void Matcher::match(
       // 通过遍历砝码可能的位置匹配出map系下的坐标
       Target target;
       for (const auto & l : weights_landmark_points_) {
-        auto error_distance = (t_landmark2odo_weights - l).squaredNorm();
+        auto error_distance = (t_landmark2odo_weights - l).norm();
 
         if (error_distance < judge_distance_) {
-          target.t_target2map = l;
-          target.name = TargetName::WEIGHT;
-          targets.push_back(target);
-          t_odo2map1 = target.t_target2map - t_landmark2odo_weights;
+          targets.push_back({l, TargetName::WEIGHT});
+          t_odo2map1 = l - t_landmark2odo_weights;
           ++count;
           tools::logger()->info("weight matched, the error_distance is: {:.2f}", error_distance);
+          break;
         }
       }
     }
@@ -60,7 +59,7 @@ void Matcher::match(
 
       Target target;
       for (const auto & w : wood_landmark_points_) {
-        auto error_distance = (t_landmark2odo_wood - w).squaredNorm();
+        auto error_distance = (t_landmark2odo_wood - w).norm();
         if (error_distance < judge_distance_) {
           tools::logger()->info("wood matched, the error_distance is: {:.2f}", error_distance);
           target.t_target2map = w;
@@ -83,8 +82,10 @@ void Matcher::match(
       return;
     }
 
-    Eigen::Vector2d t_odo2map = (t_odo2map1 + t_odo2map2) / count;
-    return;  // t_odo2map
+    t_odo2map = (t_odo2map1 + t_odo2map2) / count;
+
+    return;
   }
 }
+
 }  // namespace auto_crane

@@ -46,8 +46,9 @@ Eigen::Vector2d Matcher::match(
     return Eigen::Vector2d{1e6, 1e6};
   }
 
-  return (t_landmark2odo - target.t_target2map);  // t_odo2map
-  // t_map2odom + t_landmark2odom
+  Eigen::Vector2d t_map2odo = t_landmark2odo - target.t_target2map;
+  Eigen::Vector2d t_odo2map = {t_map2odo[1], t_map2odo[0]};
+  return t_odo2map;  // t_odo2map
 }
 
 }  // namespace auto_crane

@@ -10,7 +10,7 @@ namespace auto_crane
 class Decider
 {
 public:
-  Decider(const std::vector<std::string> & classes);
+  Decider(const std::string & config_path);
 
 private:
 };

@@ -14,6 +14,6 @@ judge_distance: 0.02
 t_odo2map_x0: 0.01
 t_odo2map_y0: 0.01
 state_cov0: 10.0
-
 process_noise: 1.0
 measurement_noise: 1.0
+

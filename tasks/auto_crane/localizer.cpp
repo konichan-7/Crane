@@ -10,7 +10,7 @@ Localizer::Localizer(const std::string & config_path)
   auto yaml = YAML::LoadFile(config_path);
   t_odo2map_x0_ = yaml["t_odo2map_x0"].as<double>();
   t_odo2map_y0_ = yaml["t_odo2map_y0"].as<double>();
-  state_cov0_ = yaml["cov0"].as<double>();
+  state_cov0_ = yaml["state_cov0"].as<double>();
   process_noise_ = yaml["process_noise"].as<double>();
   measurement_noise_ = yaml["measurement_noise"].as<double>();
   x0_ << t_odo2map_x0_, t_odo2map_y0_;

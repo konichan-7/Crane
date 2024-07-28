@@ -73,9 +73,9 @@ int main(int argc, char * argv[])
 
     yolo.save_img(img, detections);
 
-    auto filtered_detections = yolo.filter(detections);
+    // auto filtered_detections = yolo.filter(detections);
 
-    auto landmarks = solver.solve(filtered_detections);
+    auto landmarks = solver.solve(detections);
 
     matcher.match(landmarks, t_gripper2odo, targets, t_odo2map);
 

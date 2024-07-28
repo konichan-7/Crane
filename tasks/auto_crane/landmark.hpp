@@ -18,7 +18,8 @@ enum TargetName
   WEIGHT,
   SHORT_WOOD,
   TALL_WOOD,
-  CENTER
+  CENTER,
+  TWHITE,
 };
 
 struct Landmark

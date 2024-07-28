@@ -24,7 +24,7 @@ void Matcher::match(
 {
   // 此时没有识别到合适的路标
   if (landmarks.size() == 0) {
-    t_odo2map = {0.0, 0.0};
+    t_odo2map = {1e6, 1e6};
     targets = {};
     return;
   }
@@ -32,7 +32,8 @@ void Matcher::match(
   int count = 0;
   Eigen::Vector2d t_landmark2odo_weights;
   Eigen::Vector2d t_landmark2odo_wood;
-  Eigen::Vector2d t_odo2map1{0, 0}, t_odo2map2{0, 0};
+  Eigen::Vector2d t_landmark2odo_white;
+  Eigen::Vector2d t_odo2map1{0, 0}, t_odo2map2{0, 0}, t_odo2map3{0, 0};
 
   for (const auto & landmark : landmarks) {
     if (landmark.name == LandmarkName::WEIGHTS) {
@@ -40,7 +41,6 @@ void Matcher::match(
       t_landmark2odo_weights = landmark.t_landmark2cam + t_cam2gripper_ + t_gripper2odo;
 
       // 通过遍历砝码可能的位置匹配出map系下的坐标
-      Target target;
       for (const auto & l : weights_landmark_points_) {
         auto error_distance = (t_landmark2odo_weights - l).norm();
 
@@ -48,8 +48,8 @@ void Matcher::match(
           targets.push_back({l, TargetName::WEIGHT});
           t_odo2map1 = l - t_landmark2odo_weights;
           ++count;
-          tools::logger()->info("weight matched, the error_distance is: {:.2f}", error_distance);
-          break;
+          tools::logger()->info(
+            "{}weight matched, the error_distance is: {:.2f}", count, error_distance);
         }
       }
     }
@@ -57,11 +57,12 @@ void Matcher::match(
     else if (landmark.name == LandmarkName::WOOD) {
       t_landmark2odo_wood = landmark.t_landmark2cam + t_cam2gripper_ + t_gripper2odo;
 
-      Target target;
+      int i = 0;
       for (const auto & w : wood_landmark_points_) {
         auto error_distance = (t_landmark2odo_wood - w).norm();
+
         if (error_distance < judge_distance_) {
-          tools::logger()->info("wood matched, the error_distance is: {:.2f}", error_distance);
+          Target target;
           target.t_target2map = w;
 
           target.name =
@@ -70,6 +71,27 @@ void Matcher::match(
           targets.push_back(target);
           t_odo2map2 = target.t_target2map - t_landmark2odo_wood;
           ++count;
+          tools::logger()->info("{}wood matched, the error_distance is: {:.2f}", i, error_distance);
+        }
+      }
+    }
+
+    else if (landmark.name == LandmarkName::WHITE) {
+      t_landmark2odo_white = landmark.t_landmark2cam + t_cam2gripper_ + t_gripper2odo;
+
+      int i = 0;
+      for (const auto & w : weights_landmark_points_) {
+        auto error_distance = (t_landmark2odo_white - w).norm();
+        if (error_distance < judge_distance_) {
+          Target target;
+          target.t_target2map = w;
+
+          targets.push_back({w, TargetName::TWHITE});
+          t_odo2map3 = target.t_target2map - t_landmark2odo_white;
+          ++count;
+          ++i;
+          tools::logger()->info(
+            "{}white matched, the error_distance is: {:.2f}", i, error_distance);
         }
       }
     }
@@ -77,12 +99,12 @@ void Matcher::match(
     // 此时匹配失败
     if (count == 0) {
       targets = {};
-      t_odo2map = {0, 0};
+      t_odo2map = {1e6, 1e6};
       tools::logger()->info("falied to match landmarks!");
       return;
     }
 
-    t_odo2map = (t_odo2map1 + t_odo2map2) / count;
+    t_odo2map = (t_odo2map1 + t_odo2map2 + t_odo2map3) / count;
 
     return;
   }

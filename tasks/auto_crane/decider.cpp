@@ -33,7 +33,7 @@ bool Decider::judge(
     state_ == State::BEFORE_CRAWL || state_ == State::CRAWLING || state_ == State::AFTER_CRAWL ||
     state_ == State::BEFORE_PLACE || state_ == State::PLACING || state_ == State::AFTER_PLACE) {
     ++servo_count_;
-    if (servo_count_ > 100 && servo_state == true) {
+    if (servo_count_ > 50 && servo_state == true) {
       servo_count_ = 0;
       return true;
     }
@@ -160,6 +160,7 @@ void Decider::state_machine(bool & judge)
         state_ = State::FOR_APPROX;
         break;
     }
+    tools::logger()->debug("switch to {}", StateNames[state_]);
   }
 }
 

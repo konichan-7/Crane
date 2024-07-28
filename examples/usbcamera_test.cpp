@@ -39,6 +39,7 @@ int main(int argc, char * argv[])
     tools::logger()->info("{:.2f} fps", 1 / dt);
 
     if (!display) continue;
+    cv::resize(img, img, {}, 0.5, 0.5);
     cv::imshow("img", img);
     if (cv::waitKey(1) == 'q') break;
   }

@@ -16,7 +16,7 @@ Localizer::Localizer(const std::string & config_path)
   x0_ << t_odo2map_x0_, t_odo2map_y0_;
 
   p0_ << state_cov0_, 0.0, 0.0, state_cov0_;
-  tools::ExtendedKalmanFilter efk_(x0_, p0_);
+  ekf_ = tools::ExtendedKalmanFilter(x0_, p0_);
 
   F_ << 1.0, 0.0, 0.0, 1.0;
   Q_ << process_noise_, 0.0, 0.0, process_noise_;

@@ -19,19 +19,32 @@ Decider::Decider(const std::string & config_path)
   state_ = State::FOR_APPROX;
   min_shift_count_ = 5;
   shift_count_ = 0;
-  circle_count_ = 0;
+  circle_count_ = 1;
+  servo_count_ = 0;
 }
 
-static bool judge(
+bool Decider::judge(
   const Eigen::Vector2d & t_gripper2odo, const Eigen::Vector2d & t_target2odo,
-  double judge_distance = 0.5)
+  const bool & servo_state, double judge_distance = 0.5)
 {
   double error = (t_gripper2odo - t_target2odo).norm();
+
+  if (
+    state_ == State::BEFORE_CRAWL || state_ == State::CRAWLING || state_ == State::AFTER_CRAWL ||
+    state_ == State::BEFORE_PLACE || state_ == State::PLACING || state_ == State::AFTER_PLACE) {
+    ++servo_count_;
+    if (servo_count_ > 100 && servo_state == true) {
+      servo_count_ = 0;
+      return true;
+    }
+    return false;
+  }
+
   if (error <= judge_distance) return true;
   return false;
 }
 
-State Decider::state() { return state_; }
+std::string Decider::state() { return StateNames[state_]; }
 
 Target Decider::choose_target(const std::vector<Target> & targets)
 {
@@ -68,13 +81,13 @@ Target Decider::choose_target(const std::vector<Target> & targets)
 
 io::Command Decider::decide(
   const Eigen::Vector2d & t_gripper2odo, const Eigen::Vector2d & t_odo2map,
-  const std::vector<Target> & targets)
+  const std::vector<Target> & targets, const bool & servo_state)
 {
   auto target = choose_target(targets);
 
   Eigen::Vector2d t_target2odo = target.t_target2map - t_odo2map;
 
-  bool shift = judge(t_gripper2odo, t_target2odo);
+  bool shift = judge(t_gripper2odo, t_target2odo, servo_state);
 
   state_machine(shift);
 
@@ -84,20 +97,28 @@ io::Command Decider::decide(
   if (state_ == State::FOR_APPROX) {
     return io::Command{target.t_target2map[0], target.t_target2map[1], safe_height_, 0};
   } else if (state_ == State::FOR_WEIGHTS) {
+    if (!shift) return io::Command{0, 0, 0, 0};
     return io::Command{t_target2odo[0], t_target2odo[1], safe_height_, 0};
   } else if (state_ == State::BEFORE_CRAWL) {
+    if (!shift) return io::Command{0, 0, 0, 0};
     return io::Command{t_target2odo[0], t_target2odo[1], crawl_height_, 0};
   } else if (state_ == State::CRAWLING) {
+    if (!shift) return io::Command{0, 0, 0, 0};
     return io::Command{t_target2odo[0], t_target2odo[1], crawl_height_, 1};
   } else if (state_ == State::AFTER_CRAWL) {
+    if (!shift) return io::Command{0, 0, 0, 0};
     return io::Command{t_target2odo[0], t_target2odo[1], safe_height_, 1};
   } else if (state_ == State::FOR_WOOD) {
+    if (!shift) return io::Command{0, 0, 0, 0};
     return io::Command{t_target2odo[0], t_target2odo[1], safe_height_, 1};
   } else if (state_ == State::BEFORE_PLACE) {
+    if (!shift) return io::Command{0, 0, 0, 0};
     return io::Command{t_target2odo[0], t_target2odo[1], place_height, 1};
   } else if (state_ == State::PLACING) {
+    if (!shift) return io::Command{0, 0, 0, 0};
     return io::Command{t_target2odo[0], t_target2odo[1], place_height, 0};
   } else {
+    if (!shift) return io::Command{0, 0, 0, 0};
     return io::Command{t_target2odo[0], t_target2odo[1], safe_height_, 0};
   }
 }

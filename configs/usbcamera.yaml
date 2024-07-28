@@ -7,9 +7,10 @@ usb_exposure: 500 # 1-80000
 usb_gamma_: 160
 usb_gain_: 10 # 0-96
 
-x_cam2gripper: 0.04 # 单位m
-y_cam2gripper: 0.08
-judge_distance: 0.5 
+x_cam2gripper: -0.02
+y_cam2gripper: 0.03
+
+judge_distance: 0.5
 
 t_odo2map_x0: 0.01
 t_odo2map_y0: 0.01

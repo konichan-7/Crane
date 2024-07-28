@@ -14,7 +14,10 @@ class Solver
 public:
   Solver(const std::string & config_path);
 
-  std::vector<Landmark> solve(std::vector<Detection> & detections, Eigen::Vector2d t_gripper2odom);
+  std::vector<Landmark> solve(
+    const std::vector<Detection> & detections, Eigen::Vector2d t_gripper2odom);
+
+  void update_wood(std::vector<Landmark> & landmarks, Eigen::Vector2d t_gripper2odom);
 
 private:
   double z_cam2map_;

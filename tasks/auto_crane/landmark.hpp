@@ -21,7 +21,7 @@ const std::vector<std::string> LANDMARK_NAMES = {
 
 struct Landmark
 {
-  Eigen::Vector2d t_landmark2cam;  // TODO deprecate
+  Eigen::Vector2d in_cam;
   Eigen::Vector2d in_odom;
   Eigen::Vector2d in_map;
   LandmarkName name;

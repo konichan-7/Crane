@@ -76,6 +76,10 @@ void Matcher::match(
     return;
   }
 
+  if (landmark.name == LandmarkName::TALL_WOOD && matched == woods_in_map_[0]) {
+    landmark.name = LandmarkName::SHORT_WOOD;
+  }
+
   landmark.in_map = matched;
 }
 

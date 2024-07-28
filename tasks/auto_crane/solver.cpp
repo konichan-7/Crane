@@ -20,7 +20,7 @@ Solver::Solver(const std::string & config_path)
 }
 
 std::vector<Landmark> Solver::solve(
-  std::vector<Detection> & detections, Eigen::Vector2d t_gripper2odom)
+  const std::vector<Detection> & detections, Eigen::Vector2d t_gripper2odom)
 {
   std::vector<Landmark> landmarks;
 
@@ -47,13 +47,23 @@ std::vector<Landmark> Solver::solve(
     }
 
     // 根据坐标系定义，y需要取反
-    Eigen::Vector2d l_in_cam{std::tan(angle_x) * z, -std::tan(angle_y) * z};
-    l.in_odom = l_in_cam + t_cam2gripper_ + t_gripper2odom;
+    l.in_cam = {std::tan(angle_x) * z, -std::tan(angle_y) * z};
+    l.in_odom = l.in_cam + t_cam2gripper_ + t_gripper2odom;
 
     landmarks.push_back(l);
   }
 
   return landmarks;
+}
+
+void Solver::update_wood(std::vector<Landmark> & landmarks, Eigen::Vector2d t_gripper2odom)
+{
+  for (auto & l : landmarks) {
+    if (l.name != LandmarkName::SHORT_WOOD) continue;
+
+    l.in_cam = l.in_cam * (z_cam2map_ - short_wood_height_) / (z_cam2map_ - tall_wood_height_);
+    l.in_odom = l.in_cam + t_cam2gripper_ + t_gripper2odom;
+  }
 }
 
 }  // namespace auto_crane

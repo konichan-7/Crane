@@ -8,7 +8,6 @@ find_package(OpenVINO REQUIRED COMPONENTS Runtime)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
 add_library(auto_crane OBJECT
-            weight_matcher.cpp
             yolov8.cpp
             decider.cpp
             matcher.cpp

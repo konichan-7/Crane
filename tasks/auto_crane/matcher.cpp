@@ -2,90 +2,79 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include "../../tools/logger.hpp"
+#include "tools/logger.hpp"
+#include "tools/math_tools.hpp"
 
 namespace auto_crane
 {
-
 Matcher::Matcher(const std::string & config_path)
 {
   auto yaml = YAML::LoadFile(config_path);
-  x_cam2gripper_ = yaml["x_cam2gripper"].as<double>();
-  y_cam2gripper_ = yaml["y_cam2gripper"].as<double>();
-  judge_distance_ = yaml["judge_distance"].as<double>();  // 单位m^2
-  t_cam2gripper_ = {x_cam2gripper_, y_cam2gripper_};
-  weights_landmark_points_ = generate_points(1.2, 0, 0.375, 0.75);
-  wood_landmark_points_ = generate_points();
+  max_match_error_ = yaml["max_match_error"].as<double>();
+
+  /// compute weights_in_map_ and whites_in_map_
+
+  auto cx = 1.2, cy = 0.0;
+  auto r1 = 0.375, r2 = 0.75;
+
+  for (int i = 0; i < 6; i++) {
+    auto angle = tools::limit_rad(i * M_PI / 3);
+
+    whites_in_map_.push_back({cx + r1 * std::cos(angle), cy + r1 * std::sin(angle)});
+    whites_in_map_.push_back({cx + r2 * std::cos(angle), cy + r2 * std::sin(angle)});
+
+    weights_in_map_.push_back({cx + r1 * std::cos(angle), cy + r1 * std::sin(angle)});
+    weights_in_map_.push_back({cx + r2 * std::cos(angle), cy + r2 * std::sin(angle)});
+  }
+
+  whites_in_map_.push_back({0.0, 0.0});
+
+  /// woods_in_map
+
+  woods_in_map_.push_back({1.2, 0});
+  woods_in_map_.push_back({2.205, 0.755});
+  woods_in_map_.push_back({2.205, -0.755});
+  woods_in_map_.push_back({-1.305, 0.755});
+  woods_in_map_.push_back({-1.305, -0.755});
+}
+
+void Matcher::match(std::vector<Landmark> & landmarks, Eigen::Vector2d t_odom2map)
+{
+  for (auto & landmark : landmarks) {
+    if (landmark.name == LandmarkName::WEIGHTS)
+      match(landmark, weights_in_map_, t_odom2map);
+
+    else if (landmark.name == LandmarkName::WHITE)
+      match(landmark, whites_in_map_, t_odom2map);
+
+    else if (landmark.name == LandmarkName::WOOD)
+      match(landmark, woods_in_map_, t_odom2map);
+  }
 }
 
 void Matcher::match(
-  const std::vector<Landmark> & landmarks, const Eigen::Vector2d & t_gripper2odo,
-  std::vector<Target> & targets, Eigen::Vector2d & t_odo2map)
+  Landmark & landmark, const std::vector<Eigen::Vector2d> & landmarks_in_map,
+  Eigen::Vector2d t_odom2map)
 {
-  // 此时没有识别到合适的路标
-  if (landmarks.size() == 0) {
-    t_odo2map = {0.0, 0.0};
-    targets = {};
+  Eigen::Vector2d predicted = landmark.in_odom + t_odom2map;
+
+  auto min_match_error = 1e6;
+  Eigen::Vector2d matched;
+  for (const Eigen::Vector2d & landmark : landmarks_in_map) {
+    auto match_error = (predicted - landmark).norm();
+    if (match_error < min_match_error) {
+      min_match_error = match_error;
+      matched = landmark;
+    }
+  }
+
+  if (min_match_error > max_match_error_) {
+    tools::logger()->warn("[Matcher] large min_match_error: {:.3f}", min_match_error);
+    landmark.name = LandmarkName::INVALID;
     return;
   }
 
-  int count = 0;
-  Eigen::Vector2d t_landmark2odo_weights;
-  Eigen::Vector2d t_landmark2odo_wood;
-  Eigen::Vector2d t_odo2map1{0, 0}, t_odo2map2{0, 0};
-
-  for (const auto & landmark : landmarks) {
-    if (landmark.name == LandmarkName::WEIGHTS) {
-      // 计算路标在odo系下的坐标
-      t_landmark2odo_weights = landmark.t_landmark2cam + t_cam2gripper_ + t_gripper2odo;
-
-      // 通过遍历砝码可能的位置匹配出map系下的坐标
-      Target target;
-      for (const auto & l : weights_landmark_points_) {
-        auto error_distance = (t_landmark2odo_weights - l).norm();
-
-        if (error_distance < judge_distance_) {
-          targets.push_back({l, TargetName::WEIGHT});
-          t_odo2map1 = l - t_landmark2odo_weights;
-          ++count;
-          tools::logger()->info("weight matched, the error_distance is: {:.2f}", error_distance);
-          break;
-        }
-      }
-    }
-
-    else if (landmark.name == LandmarkName::WOOD) {
-      t_landmark2odo_wood = landmark.t_landmark2cam + t_cam2gripper_ + t_gripper2odo;
-
-      Target target;
-      for (const auto & w : wood_landmark_points_) {
-        auto error_distance = (t_landmark2odo_wood - w).norm();
-        if (error_distance < judge_distance_) {
-          tools::logger()->info("wood matched, the error_distance is: {:.2f}", error_distance);
-          target.t_target2map = w;
-
-          target.name =
-            (target.t_target2map[1] == 0) ? TargetName::SHORT_WOOD : TargetName::TALL_WOOD;
-
-          targets.push_back(target);
-          t_odo2map2 = target.t_target2map - t_landmark2odo_wood;
-          ++count;
-        }
-      }
-    }
-
-    // 此时匹配失败
-    if (count == 0) {
-      targets = {};
-      t_odo2map = {0, 0};
-      tools::logger()->info("falied to match landmarks!");
-      return;
-    }
-
-    t_odo2map = (t_odo2map1 + t_odo2map2) / count;
-
-    return;
-  }
+  landmark.in_map = matched;
 }
 
 }  // namespace auto_crane

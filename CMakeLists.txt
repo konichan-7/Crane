@@ -34,8 +34,8 @@ target_link_libraries(usbcamera_test ${OpenCV_LIBS} io fmt::fmt tools)
 # add_executable(localizer_test examples/localizer_test.cpp)
 # target_link_libraries(localizer_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)
 
-# add_executable(matcher_test examples/matcher_test.cpp)
-# target_link_libraries(matcher_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)
+add_executable(matcher_test examples/matcher_test.cpp)
+target_link_libraries(matcher_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)
 
 add_executable(t_cam2gripper_test examples/t_cam2gripper_test.cpp)
 target_link_libraries(t_cam2gripper_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)

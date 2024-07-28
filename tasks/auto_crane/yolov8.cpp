@@ -202,26 +202,4 @@ void YOLOV8::save_img(const cv::Mat & img, const std::vector<Detection> & detect
   return;
 }
 
-Landmark YOLOV8::pixel2cam(const std::vector<Detection> & landmarks)
-{
-  if (landmarks.size() == 0) return Landmark{Eigen::Vector2d{0.0, 0.0}, LandmarkName::INVALID};
-
-  Detection landmark;
-  Eigen::Vector2d t_landmark2cam;
-  for (const auto & l : landmarks) {
-    if (l.class_id == 1) {
-      continue;
-    }
-    landmark = l;
-  }
-
-  auto angle_h = (landmark.center.x - 960.0) / 1920.0 * 87.7 / 57.3;
-  auto angle_v = (landmark.center.y - 540.0) / 1080.0 * 56.7 / 57.3;
-
-  t_landmark2cam[0] = std::tan(angle_h) * 0.365;   // 单位m
-  t_landmark2cam[1] = -std::tan(angle_v) * 0.365;  //根据坐标系定义，需要取反
-
-  return Landmark{t_landmark2cam, LandmarkName::WEIGHTS};
-}
-
 }  // namespace auto_crane

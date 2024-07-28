@@ -51,21 +51,19 @@ int main(int argc, char * argv[])
 
     usbcam.read(img, t);
     Eigen::Vector3d gripper_in_odom = cboard.odom_at(t);
+    Eigen::Vector2d t_gripper2odom = gripper_in_odom.head<2>();
 
     auto detections = yolo.infer(img);
     yolo.save_img(img, detections);
 
-    auto landmarks = solver.solve(detections);
+    auto landmarks = solver.solve(detections, t_gripper2odom);
+
     Eigen::Vector2d target_in_odom = gripper_in_odom.head<2>();
 
     for (const auto & landmark : landmarks) {
       if (landmark.name != auto_crane::LandmarkName::WEIGHTS) continue;
 
-      Eigen::Vector2d t_gripper2odom = gripper_in_odom.head<2>();
-      Eigen::Vector2d target_in_cam = landmark.t_landmark2cam;
-      Eigen::Vector2d target_in_gripper = target_in_cam + t_cam2gripper;
-
-      target_in_odom = target_in_gripper + t_gripper2odom;
+      target_in_odom = landmark.in_odom;
       break;
     }
 

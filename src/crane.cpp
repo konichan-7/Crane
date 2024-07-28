@@ -64,6 +64,7 @@ int main(int argc, char * argv[])
     usbcam.read(img, t);
 
     p_gripper2odo = cboard.odom_at(t);
+    servo_state = cboard.servo();
     t_gripper2odo = p_gripper2odo.head<2>();  // 提取xy坐标
 
     auto detections = yolo.infer(img);
@@ -97,9 +98,6 @@ int main(int argc, char * argv[])
       tools::logger()->debug(
         "command is:{:.4f},{:.4f},{:.4f},{}.state is {}", command.x, command.y, command.z,
         command.grip, decider.state());
-    // tools::logger()->info(
-    //   "odom2map:{:.2f},{:.2f},after update:{:.2f},{:.2f}", t_odo2map[0], t_odo2map[1],
-    //   t_odo2map_update[0], t_odo2map_update[1]);
 
     auto_crane::draw_detections(img, detections, classes);
     tools::draw_text(img, decider.state(), cv::Point(50, 50), {0, 0, 255}, 2);
@@ -108,6 +106,13 @@ int main(int argc, char * argv[])
     cv::imshow("press q to quit", img);
 
     if (cv::waitKey(1) == 'q') break;
+
+    if (t_odo2map_update[0] != 1e6) {
+      nlohmann::json data;
+      data["x_odo2map"] = t_odo2map_update[0];
+      data["y_odo2map"] = t_odo2map_update[1];
+      plotter.plot(data);
+    }
 
     if (!auto_mode) continue;
 

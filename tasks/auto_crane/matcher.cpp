@@ -12,7 +12,7 @@ Matcher::Matcher(const std::string & config_path)
   auto yaml = YAML::LoadFile(config_path);
   max_match_error_ = yaml["max_match_error"].as<double>();
 
-  /// compute weights_in_map_ and whites_in_map_
+  /// weights_in_map_ and whites_in_map_
 
   auto cx = 1.2, cy = 0.0;
   auto r1 = 0.375, r2 = 0.75;
@@ -31,11 +31,11 @@ Matcher::Matcher(const std::string & config_path)
 
   /// woods_in_map
 
-  woods_in_map_.push_back({1.2, 0});
   woods_in_map_.push_back({2.205, 0.755});
-  woods_in_map_.push_back({2.205, -0.755});
   woods_in_map_.push_back({-1.305, 0.755});
   woods_in_map_.push_back({-1.305, -0.755});
+  woods_in_map_.push_back({2.205, -0.755});
+  woods_in_map_.push_back({1.2, 0});
 }
 
 void Matcher::match(std::vector<Landmark> & landmarks, Eigen::Vector2d t_odom2map)
@@ -58,29 +58,31 @@ void Matcher::match(
 {
   Eigen::Vector2d predicted = landmark.in_odom + t_odom2map;
 
+  auto matched = -1;
   auto min_match_error = 1e6;
-  Eigen::Vector2d matched;
-  for (const Eigen::Vector2d & landmark : landmarks_in_map) {
-    auto match_error = (predicted - landmark).norm();
+
+  for (int i = 0; i < landmarks_in_map.size(); i++) {
+    auto match_error = (predicted - landmarks_in_map[i]).norm();
     if (match_error < min_match_error) {
       min_match_error = match_error;
-      matched = landmark;
+      matched = i;
     }
   }
 
   if (min_match_error > max_match_error_) {
     tools::logger()->warn(
-      "[Matcher] [{}] large min_match_error: {:.3f}", auto_crane::LANDMARK_NAMES[landmark.name],
-      min_match_error);
+      "[Matcher] [{}_{}] large min_match_error: {:.3f}", auto_crane::LANDMARK_NAMES[landmark.name],
+      matched, min_match_error);
     landmark.name = LandmarkName::INVALID;
     return;
   }
 
-  if (landmark.name == LandmarkName::TALL_WOOD && matched == woods_in_map_[0]) {
+  if (landmark.name == LandmarkName::TALL_WOOD && matched == 4) {
     landmark.name = LandmarkName::SHORT_WOOD;
   }
 
-  landmark.in_map = matched;
+  landmark.in_map = landmarks_in_map[matched];
+  landmark.id = matched;
 }
 
 }  // namespace auto_crane

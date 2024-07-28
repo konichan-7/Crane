@@ -25,6 +25,7 @@ struct Landmark
   Eigen::Vector2d in_odom;
   Eigen::Vector2d in_map;
   LandmarkName name;
+  int id;  // 0为x轴逆时针
 };
 
 }  // namespace auto_crane

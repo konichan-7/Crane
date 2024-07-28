@@ -50,6 +50,7 @@ void Matcher::match(
           ++count;
           tools::logger()->info(
             "{}weight matched, the error_distance is: {:.2f}", count, error_distance);
+          break;
         }
       }
     }
@@ -72,6 +73,7 @@ void Matcher::match(
           t_odo2map2 = target.t_target2map - t_landmark2odo_wood;
           ++count;
           tools::logger()->info("{}wood matched, the error_distance is: {:.2f}", i, error_distance);
+          break;
         }
       }
     }
@@ -92,6 +94,7 @@ void Matcher::match(
           ++i;
           tools::logger()->info(
             "{}white matched, the error_distance is: {:.2f}", i, error_distance);
+          break;
         }
       }
     }

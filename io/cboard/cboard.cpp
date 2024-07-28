@@ -9,7 +9,7 @@ namespace io
 CBoard::CBoard(const std::string & interface)
 : queue_(5000),
   // 注意: callback的运行会早于Cboard构造函数的完成
-  can_(interface, std::bind(&CBoard::callback, this, std::placeholders::_1))
+  can_(interface, std::bind(&CBoard::callback, this, std::placeholders::_1)),grip_(false)
 {
 }
 
@@ -69,10 +69,15 @@ void CBoard::callback(const can_frame & frame)
   auto x = (int16_t)(frame.data[0] << 8 | frame.data[1]) / 1e3;
   auto y = (int16_t)(frame.data[2] << 8 | frame.data[3]) / 1e3;
   auto z = (int16_t)(frame.data[4] << 8 | frame.data[5]) / 1e3;
+  grip_ = (frame.data[6]==1);
 
   y = -y;
 
   queue_.push({{x, y, z}, t});
+}
+
+bool CBoard::servo(){
+  return grip_;
 }
 
 }  // namespace io

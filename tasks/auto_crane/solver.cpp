@@ -8,7 +8,7 @@ Solver::Solver(const std::string & config_path)
 {
   auto yaml = YAML::LoadFile(config_path);
 
-  z_cam2map_ = yaml["z_cam2map_"].as<double>();
+  z_cam2map_ = yaml["z_cam2map"].as<double>();
   white_height_ = yaml["white_height"].as<double>();
   weight_height_ = yaml["weight_height"].as<double>();
   tall_wood_height_ = yaml["tall_wood_height"].as<double>();

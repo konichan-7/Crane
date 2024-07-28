@@ -62,9 +62,9 @@ int main(int argc, char * argv[])
     yolo.save_img(img, detections);
 
     auto landmarks = solver.solve(detections, t_gripper2odom);
-    matcher.match(landmarks, t_odom2map);
 
     tools::logger()->info("-------------------- Match Result --------------------");
+    matcher.match(landmarks, t_odom2map);
 
     auto has_landmark = false;
     for (const auto & landmark : landmarks) {
@@ -73,9 +73,9 @@ int main(int argc, char * argv[])
       has_landmark = true;
       auto match_error = (landmark.in_map - landmark.in_odom).norm();
       tools::logger()->info(
-        "[{}] map=({:.3f}, {:.3f}) odom=({:.3f}, {:.3f}) error={:.3f}", landmark.name,
-        landmark.in_map[0], landmark.in_map[1], landmark.in_odom[0], landmark.in_odom[1],
-        match_error);
+        "[{}] map=({:.3f}, {:.3f}) odom=({:.3f}, {:.3f}) error={:.3f}",
+        auto_crane::LANDMARK_NAMES[landmark.name], landmark.in_map[0], landmark.in_map[1],
+        landmark.in_odom[0], landmark.in_odom[1], match_error);
     }
 
     if (!has_landmark) tools::logger()->info("landmark not found");

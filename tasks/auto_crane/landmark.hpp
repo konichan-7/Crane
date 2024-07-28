@@ -2,6 +2,8 @@
 #define AUTO_CRANE__LANDMARK_HPP
 
 #include <Eigen/Dense>
+#include <string>
+#include <vector>
 
 namespace auto_crane
 {
@@ -12,6 +14,8 @@ enum LandmarkName
   WHITE,
   INVALID
 };
+
+const std::vector<std::string> LANDMARK_NAMES = {"WEIGHT", "WOOD", "WHITE", "INVALID"};
 
 enum TargetName
 {

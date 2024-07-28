@@ -41,13 +41,13 @@ Matcher::Matcher(const std::string & config_path)
 void Matcher::match(std::vector<Landmark> & landmarks, Eigen::Vector2d t_odom2map)
 {
   for (auto & landmark : landmarks) {
-    if (landmark.name == LandmarkName::WEIGHTS)
+    if (landmark.name == LandmarkName::WEIGHT)
       match(landmark, weights_in_map_, t_odom2map);
 
     else if (landmark.name == LandmarkName::WHITE)
       match(landmark, whites_in_map_, t_odom2map);
 
-    else if (landmark.name == LandmarkName::WOOD)
+    else if (landmark.name == LandmarkName::TALL_WOOD)
       match(landmark, woods_in_map_, t_odom2map);
   }
 }

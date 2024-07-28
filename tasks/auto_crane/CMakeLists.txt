@@ -9,7 +9,7 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 
 add_library(auto_crane OBJECT
             yolov8.cpp
-            decider.cpp
+            # decider.cpp
             matcher.cpp
             localizer.cpp
             solver.cpp)

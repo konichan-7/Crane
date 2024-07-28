@@ -33,7 +33,7 @@ std::vector<Landmark> Solver::solve(
 
     if (d.class_id == 0) {
       z = z_cam2map_ - weight_height_;
-      l.name = LandmarkName::WEIGHTS;  // TODO WEIGHT
+      l.name = LandmarkName::WEIGHT;  // TODO WEIGHT
     }
 
     else if (d.class_id == 1) {
@@ -43,7 +43,7 @@ std::vector<Landmark> Solver::solve(
 
     else if (d.class_id == 2) {
       z = z_cam2map_ - tall_wood_height_;  // 此时不考虑木桩高低的影响
-      l.name = LandmarkName::WOOD;
+      l.name = LandmarkName::TALL_WOOD;
     }
 
     // 根据坐标系定义，y需要取反

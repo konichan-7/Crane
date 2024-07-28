@@ -9,21 +9,15 @@ namespace auto_crane
 {
 enum LandmarkName
 {
-  WEIGHTS,
-  WOOD,
   WHITE,
+  WEIGHT,
+  TALL_WOOD,
+  SHORT_WOOD,
   INVALID
 };
 
-const std::vector<std::string> LANDMARK_NAMES = {"WEIGHT", "WOOD", "WHITE", "INVALID"};
-
-enum TargetName
-{
-  WEIGHT,
-  SHORT_WOOD,
-  TALL_WOOD,
-  CENTER
-};
+const std::vector<std::string> LANDMARK_NAMES = {
+  "WHITE", "WEIGHT", "TALL_WOOD", "SHORT_WOOD", "INVALID"};
 
 struct Landmark
 {
@@ -31,12 +25,6 @@ struct Landmark
   Eigen::Vector2d in_odom;
   Eigen::Vector2d in_map;
   LandmarkName name;
-};
-
-struct Target
-{
-  Eigen::Vector2d t_target2map;
-  TargetName name;
 };
 
 }  // namespace auto_crane

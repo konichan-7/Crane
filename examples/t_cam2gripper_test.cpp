@@ -61,7 +61,7 @@ int main(int argc, char * argv[])
     Eigen::Vector2d target_in_odom = gripper_in_odom.head<2>();
 
     for (const auto & landmark : landmarks) {
-      if (landmark.name != auto_crane::LandmarkName::WEIGHTS) continue;
+      if (landmark.name != auto_crane::LandmarkName::WEIGHT) continue;
 
       target_in_odom = landmark.in_odom;
       break;

@@ -16,6 +16,9 @@ Decider::Decider(const std::string & config_path)
   crawl_height_ = yaml["crawl_height"].as<double>();
   short_place_height_ = yaml["short_place_height"].as<double>();
   tall_place_height_ = yaml["tall_place_height"].as<double>();
+  x_bias_ = yaml["x_cam2gripper"].as<double>();
+  y_bias_ = yaml["y_cam2gripper"].as<double>();
+  bias_ = {x_bias_, y_bias_};
   state_ = State::FOR_APPROX;
   min_shift_count_ = 5;
   shift_count_ = 0;
@@ -24,16 +27,17 @@ Decider::Decider(const std::string & config_path)
 }
 
 bool Decider::judge(
-  const Eigen::Vector2d & t_gripper2odo, const Eigen::Vector2d & t_target2odo,
-  const bool & servo_state, double judge_distance = 0.5)
+  const Eigen::Vector3d & p_gripper2odo, const Eigen::Vector3d & t_target2odo,
+  const bool & servo_state, double judge_distance = 0.02)
 {
-  double error = (t_gripper2odo - t_target2odo).norm();
+  double error = (p_gripper2odo - t_target2odo).norm();
 
   if (
-    state_ == State::BEFORE_CRAWL || state_ == State::CRAWLING || state_ == State::AFTER_CRAWL ||
-    state_ == State::BEFORE_PLACE || state_ == State::PLACING || state_ == State::AFTER_PLACE) {
+    state_ == State::CRAWLING || state_ == State::AFTER_CRAWL || state_ == State::FOR_WOOD ||
+    state_ == State::BEFORE_PLACE) {
     ++servo_count_;
-    if (servo_count_ > 50 && servo_state == true) {
+    tools::logger()->debug("judge by servo, servo_state is{}", servo_count_);
+    if (servo_count_ > 5 && servo_state == true) {
       servo_count_ = 0;
       return true;
     }
@@ -41,6 +45,7 @@ bool Decider::judge(
   }
 
   if (error <= judge_distance) return true;
+  tools::logger()->info("judge error is {:.4f}", error);
   return false;
 }
 
@@ -79,15 +84,40 @@ Target Decider::choose_target(const std::vector<Target> & targets)
   }
 }
 
+double Decider::get_target_z(const Target & target)
+{
+  if (
+    state_ == FOR_APPROX || state_ == FOR_WEIGHTS || state_ == AFTER_CRAWL || state_ == FOR_WOOD ||
+    state_ == AFTER_PLACE)
+    return safe_height_;
+  else if (state_ == BEFORE_CRAWL || state_ == CRAWLING)
+    return crawl_height_;
+  else
+    return (target.name == TargetName::SHORT_WOOD) ? short_place_height_ : tall_place_height_;
+}
+
 io::Command Decider::decide(
-  const Eigen::Vector2d & t_gripper2odo, const Eigen::Vector2d & t_odo2map,
+  const Eigen::Vector3d & p_gripper2odo, const Eigen::Vector2d & t_odo2map,
   const std::vector<Target> & targets, const bool & servo_state)
 {
+  Eigen::Vector2d t_target2odo;
+
+  if (t_odo2map[0] == 1e6) return io::Command{0, 0, 0, 0};
   auto target = choose_target(targets);
 
-  Eigen::Vector2d t_target2odo = target.t_target2map - t_odo2map;
+  if (state_ == State::FOR_APPROX)
+    t_target2odo = target.t_target2map;
+  else
+    t_target2odo = target.t_target2map - t_odo2map;
+  Eigen::Vector3d p_target2odo = {t_target2odo[0], t_target2odo[1], get_target_z(target)};
 
-  bool shift = judge(t_gripper2odo, t_target2odo, servo_state);
+  bool shift = judge(p_gripper2odo, p_target2odo, servo_state);
+
+  tools::logger()->debug(
+    "target in odom is {:.4f},{:.4f},{:.4f}", p_target2odo[0], p_target2odo[1], p_target2odo[2]);
+  tools::logger()->debug(
+    "gripper in odom is {:.4f},{:.4f}.{:.4f}", p_gripper2odo[0], p_gripper2odo[1],
+    p_gripper2odo[2]);
 
   state_machine(shift);
 
@@ -97,28 +127,28 @@ io::Command Decider::decide(
   if (state_ == State::FOR_APPROX) {
     return io::Command{target.t_target2map[0], target.t_target2map[1], safe_height_, 0};
   } else if (state_ == State::FOR_WEIGHTS) {
-    if (!shift) return io::Command{0, 0, 0, 0};
+    // if (!shift) return io::Command{0, 0, 0, 0};
     return io::Command{t_target2odo[0], t_target2odo[1], safe_height_, 0};
   } else if (state_ == State::BEFORE_CRAWL) {
-    if (!shift) return io::Command{0, 0, 0, 0};
+    // if (!shift) return io::Command{0, 0, 0, 0};
     return io::Command{t_target2odo[0], t_target2odo[1], crawl_height_, 0};
   } else if (state_ == State::CRAWLING) {
-    if (!shift) return io::Command{0, 0, 0, 0};
+    // if (!shift) return io::Command{0, 0, 0, 0};
     return io::Command{t_target2odo[0], t_target2odo[1], crawl_height_, 1};
   } else if (state_ == State::AFTER_CRAWL) {
-    if (!shift) return io::Command{0, 0, 0, 0};
+    // if (!shift) return io::Command{0, 0, 0, 0};
     return io::Command{t_target2odo[0], t_target2odo[1], safe_height_, 1};
   } else if (state_ == State::FOR_WOOD) {
-    if (!shift) return io::Command{0, 0, 0, 0};
+    // if (!shift) return io::Command{0, 0, 0, 0};
     return io::Command{t_target2odo[0], t_target2odo[1], safe_height_, 1};
   } else if (state_ == State::BEFORE_PLACE) {
-    if (!shift) return io::Command{0, 0, 0, 0};
+    // if (!shift) return io::Command{0, 0, 0, 0};
     return io::Command{t_target2odo[0], t_target2odo[1], place_height, 1};
   } else if (state_ == State::PLACING) {
-    if (!shift) return io::Command{0, 0, 0, 0};
+    // if (!shift) return io::Command{0, 0, 0, 0};
     return io::Command{t_target2odo[0], t_target2odo[1], place_height, 0};
   } else {
-    if (!shift) return io::Command{0, 0, 0, 0};
+    // if (!shift) return io::Command{0, 0, 0, 0};
     return io::Command{t_target2odo[0], t_target2odo[1], safe_height_, 0};
   }
 }

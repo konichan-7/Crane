@@ -37,14 +37,16 @@ public:
 
   std::string state();
 
+  double get_target_z(const Target & target);
+
   io::Command decide(
-    const Eigen::Vector2d & t_gripper2odo, const Eigen::Vector2d & t_odo2map,
+    const Eigen::Vector3d & p_gripper2odo, const Eigen::Vector2d & t_odo2map,
     const std::vector<Target> & targets, const bool & servo_state);
 
   Target choose_target(const std::vector<Target> & targets);
 
   bool judge(
-    const Eigen::Vector2d & t_gripper2odo, const Eigen::Vector2d & t_target2odo,
+    const Eigen::Vector3d & p_gripper2odo, const Eigen::Vector3d & t_target2odo,
     const bool & servo_state, double judge_distance);
 
 private:
@@ -53,6 +55,8 @@ private:
   int shift_count_, min_shift_count_;
   int circle_count_;
   int servo_count_;
+  double x_bias_, y_bias_;
+  Eigen::Vector2d bias_;
 
   State state_;
 };

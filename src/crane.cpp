@@ -41,7 +41,7 @@ int main(int argc, char * argv[])
   tools::Exiter exiter;
   tools::Plotter plotter;
 
-  auto_crane::YOLOV8 yolo("assets/openvino_model_v4/best.xml", classes.size(), classes, "AUTO");
+  auto_crane::YOLOV8 yolo("assets/openvino_model_v5/best.xml", classes.size(), classes, "AUTO");
   auto_crane::Solver solver(config_path);
   auto_crane::Matcher matcher(config_path);
   auto_crane::Localizer localizer(config_path);
@@ -55,6 +55,7 @@ int main(int argc, char * argv[])
     cv::Mat img;
     std::chrono::steady_clock::time_point t;
     Eigen::Vector2d t_gripper2odo, t_odo2map, t_odo2map_update;
+    Eigen::Vector3d p_gripper2odo;
     std::vector<auto_crane::Target> targets;
     bool servo_state;
 
@@ -62,7 +63,8 @@ int main(int argc, char * argv[])
 
     usbcam.read(img, t);
 
-    t_gripper2odo = cboard.odom_at(t).head<2>();  //提取xy坐标
+    p_gripper2odo = cboard.odom_at(t);
+    t_gripper2odo = p_gripper2odo.head<2>();  // 提取xy坐标
 
     auto detections = yolo.infer(img);
 
@@ -84,11 +86,17 @@ int main(int argc, char * argv[])
 
     t_odo2map_update = localizer.localize(t_odo2map);
 
-    auto command = decider.decide(t_gripper2odo, t_odo2map_update, targets, servo_state);
-
     tools::logger()->debug(
-      "command is:{:.2f},{:.2f},{:.2f},{}.state is {}", command.x, command.y, command.z,
-      command.grip, decider.state());
+      "after filter the odo2map is {:.3f},{:.3f}", t_odo2map_update[0], t_odo2map_update[1]);
+
+    std::cout << p_gripper2odo << std::endl;
+
+    auto command = decider.decide(p_gripper2odo, t_odo2map_update, targets, servo_state);
+
+    if (command.x != 0)
+      tools::logger()->debug(
+        "command is:{:.4f},{:.4f},{:.4f},{}.state is {}", command.x, command.y, command.z,
+        command.grip, decider.state());
     // tools::logger()->info(
     //   "odom2map:{:.2f},{:.2f},after update:{:.2f},{:.2f}", t_odo2map[0], t_odo2map[1],
     //   t_odo2map_update[0], t_odo2map_update[1]);

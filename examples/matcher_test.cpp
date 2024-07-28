@@ -45,9 +45,9 @@ int main(int argc, char * argv[])
 
   auto_crane::YOLOV8 yolo("assets/openvino_model_v4/best.xml", classes.size(), classes, "AUTO");
   auto_crane::Solver solver(config_path);
-  auto_crane::WeightMatcher matcher(config_path);
+  auto_crane::WeightMatcher weight_matcher(config_path);
 
-  Eigen::Vector2d t_odom2map;
+  Eigen::Vector2d t_odom2map{0.0, 0.0};
 
   while (!exiter.exit()) {
     cv::Mat img;
@@ -62,7 +62,11 @@ int main(int argc, char * argv[])
     auto landmarks = solver.solve(detections);
     Eigen::Vector2d t_gripper2odom = gripper_in_odom.head<2>();
 
-    auto match_results = matcher.match(landmarks, t_gripper2odom, t_odom2map);
+    auto match_results = weight_matcher.match(landmarks, t_gripper2odom, t_odom2map);
+
+    if (match_results.size() > 0) {
+      const auto & match_result = match_results[0];
+    }
 
     // -------------------- 调试输出 --------------------
 

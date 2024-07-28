@@ -26,3 +26,5 @@ tall_place_height: 0.3
 weights_height: 0.365 # 相机坐标系下(单位m)
 tall_wood_height: 0.22
 white_height: 0.42
+
+max_match_error: 0.1

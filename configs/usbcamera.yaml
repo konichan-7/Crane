@@ -22,9 +22,9 @@ judge_distance: 0.5
 
 t_odo2map_x0: 0.001
 t_odo2map_y0: 0.001
-state_cov0: 0.25
+state_cov0: 0.025
 process_noise: 0.01
-measurement_noise: 0.01
+measurement_noise: 0.05
 
 safe_height: -0.1
 crawl_height: -0.234

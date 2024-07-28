@@ -103,12 +103,14 @@ io::Command Decider::decide(
   Eigen::Vector2d t_target2odo;
 
   if (t_odo2map[0] == 1e6) return io::Command{0, 0, 0, 0};
+
   auto target = choose_target(targets);
 
   if (state_ == State::FOR_APPROX)
     t_target2odo = target.t_target2map;
   else
     t_target2odo = target.t_target2map - t_odo2map;
+
   Eigen::Vector3d p_target2odo = {t_target2odo[0], t_target2odo[1], get_target_z(target)};
 
   bool shift = judge(p_gripper2odo, p_target2odo, servo_state);

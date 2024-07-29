@@ -8,7 +8,7 @@ usb_gamma_: 160
 usb_gain_: 10 # 0-96
 
 x_cam2gripper: -0.02
-y_cam2gripper: 0.03
+y_cam2gripper: 0.02
 
 z_cam2map: 0.42
 white_height: 0

@@ -14,7 +14,8 @@
 #include "tools/img_tools.hpp"
 #include "tools/logger.hpp"
 
-constexpr double EPS = 0.005;
+constexpr int REACH_CNT = 10;
+constexpr double EPS = 0.01;
 
 const std::string keys =
   "{help h usage ? |                        | 输出命令行参数说明 }"
@@ -25,7 +26,7 @@ const std::vector<std::string> classes = {"weights", "white", "wood"};
 
 void go(io::USBCamera & cam, io::CBoard & cboard, Eigen::Vector3d target_in_odom, bool grip)
 {
-  auto reach = 0;
+  auto reach_cnt = 0;
 
   while (true) {
     cv::Mat img;
@@ -35,15 +36,22 @@ void go(io::USBCamera & cam, io::CBoard & cboard, Eigen::Vector3d target_in_odom
     Eigen::Vector3d gripper_in_odom = cboard.odom_at(t);
 
     if ((gripper_in_odom - target_in_odom).norm() < EPS)
-      reach++;
+      reach_cnt++;
     else
-      reach = 0;
+      reach_cnt = 0;
 
-    if (reach > 10) break;
+    if (reach_cnt > REACH_CNT) break;
 
     cboard.send({target_in_odom[0], target_in_odom[1], target_in_odom[2], grip});
 
-    tools::draw_text(img, "go", {50, 50});
+    tools::draw_text(
+      img,
+      fmt::format(
+        "[go] gripper=({:.3f}, {:.3f}, {:.3f}) target=({:.3f}, {:.3f}, {:.3f})", gripper_in_odom[0],
+        gripper_in_odom[1], gripper_in_odom[2], target_in_odom[0], target_in_odom[1],
+        target_in_odom[2]),
+      {50, 50});
+
     cv::resize(img, img, {}, 0.5, 0.5);
     cv::imshow("img", img);
     cv::waitKey(1);
@@ -61,7 +69,7 @@ void align_weight(
   io::USBCamera & cam, io::CBoard & cboard, auto_crane::YOLOV8 & yolo, auto_crane::Solver & solver,
   auto_crane::Matcher & matcher, int id1, int id2)
 {
-  int found = 0;
+  int reach_cnt = 0;
 
   while (true) {
     cv::Mat img;
@@ -85,14 +93,14 @@ void align_weight(
       cboard.send({l.in_odom[0], l.in_odom[1], 0, false});
 
       if ((l.in_odom - gripper_in_odom.head<2>()).norm() < EPS)
-        found++;
+        reach_cnt++;
       else
-        found = 0;
+        reach_cnt = 0;
 
       break;
     }
 
-    if (found > 10) break;
+    if (reach_cnt > REACH_CNT) break;
 
     auto_crane::draw_detections(img, detections, classes);
     cv::resize(img, img, {}, 0.5, 0.5);
@@ -137,7 +145,7 @@ void align_wood(
       break;
     }
 
-    if (reach_cnt > 10) break;
+    if (reach_cnt > REACH_CNT) break;
 
     if (wood_found) cboard.send({wood_in_odom[0], wood_in_odom[1], 0, true});
 
@@ -148,6 +156,66 @@ void align_wood(
     cv::imshow("img", img);
     cv::waitKey(1);
   }
+}
+
+void get(
+  io::USBCamera & cam, io::CBoard & cboard, auto_crane::YOLOV8 & yolo, auto_crane::Solver & solver,
+  auto_crane::Matcher & matcher, int id1, int id2)
+{
+  // 去砝码[id1]和砝码[id2]之中点
+  Eigen::Vector2d w1 = matcher.weight_in_map(id1);
+  Eigen::Vector2d w2 = matcher.weight_in_map(id2);
+  Eigen::Vector2d center = (w1 + w2) * 0.5;
+
+  tools::logger()->info("go");
+  go(cam, cboard, {center[0], center[1] - 0.05, 0.0}, false);
+
+  // 对齐砝码[id1]或砝码[id2]
+  tools::logger()->info("align_weight");
+  align_weight(cam, cboard, yolo, solver, matcher, id1, id2);
+
+  // 降
+  tools::logger()->info("lift down");
+  lift(cam, cboard, -0.26, false);
+
+  // 取
+  tools::logger()->info("grip");
+  lift(cam, cboard, -0.26, true);
+  std::this_thread::sleep_for(500ms);
+
+  // 抬
+  tools::logger()->info("lift up");
+  lift(cam, cboard, 0.0, true);
+}
+
+void put(
+  io::USBCamera & cam, io::CBoard & cboard, auto_crane::YOLOV8 & yolo, auto_crane::Solver & solver,
+  auto_crane::Matcher & matcher, int id)
+{
+  // 去木桩[id]
+  Eigen::Vector2d w = matcher.wood_in_map(id);
+  auto y_offset = (id != 2 && id != 3) ? -0.05 : -0.01;
+  auto z = (id == 4) ? -0.16 : -0.06;
+
+  tools::logger()->info("go");
+  go(cam, cboard, {w[0], w[1] + y_offset, 0.0}, true);
+
+  // 找木桩[id]
+  tools::logger()->info("align_wood");
+  align_wood(cam, cboard, yolo, solver, matcher, id);
+
+  // 降
+  tools::logger()->info("lift down");
+  lift(cam, cboard, z, true);
+
+  // 放
+  tools::logger()->info("grip");
+  lift(cam, cboard, z, false);
+  std::this_thread::sleep_for(500ms);
+
+  // 抬
+  tools::logger()->info("lift up");
+  lift(cam, cboard, 0, false);
 }
 
 int main(int argc, char * argv[])
@@ -174,39 +242,14 @@ int main(int argc, char * argv[])
   auto_crane::Matcher matcher(config_path);
   auto_crane::Localizer localizer(config_path);
 
-  Eigen::Vector2d t_odom2map{0.0, 0.0};
+  get(usbcam, cboard, yolo, solver, matcher, 2, 3);
+  put(usbcam, cboard, yolo, solver, matcher, 0);
 
-  // 去砝码2和砝码3之间
-  go(usbcam, cboard, {1.48125, 0.487125 - 0.05, 0.0}, false);
+  get(usbcam, cboard, yolo, solver, matcher, 0, 1);
+  put(usbcam, cboard, yolo, solver, matcher, 4);
 
-  // 找砝码2或砝码3
-  align_weight(usbcam, cboard, yolo, solver, matcher, 2, 3);
-
-  // 降
-  lift(usbcam, cboard, -0.26, false);
-
-  // 取
-  lift(usbcam, cboard, -0.26, true);
-  std::this_thread::sleep_for(500ms);
-
-  // 抬
-  lift(usbcam, cboard, 0.0, true);
-
-  // 去木桩0
-  go(usbcam, cboard, {2.205, 0.755 - 0.05, 0.0}, true);
-
-  // 找木桩0
-  align_wood(usbcam, cboard, yolo, solver, matcher, 0);
-
-  // 降
-  lift(usbcam, cboard, -0.06, true);
-
-  // 放
-  lift(usbcam, cboard, -0.06, false);
-  std::this_thread::sleep_for(500ms);
-
-  // 抬
-  lift(usbcam, cboard, 0, false);
+  get(usbcam, cboard, yolo, solver, matcher, 10, 11);
+  put(usbcam, cboard, yolo, solver, matcher, 3);
 
   return 0;
 }

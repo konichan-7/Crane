@@ -16,6 +16,9 @@ public:
 
   void match(std::vector<Landmark> & landmarks, Eigen::Vector2d t_odom2map);
 
+  Eigen::Vector2d wood_in_map(int id);
+  Eigen::Vector2d weight_in_map(int id);
+
 private:
   double max_match_error_;
   std::vector<Eigen::Vector2d> woods_in_map_;

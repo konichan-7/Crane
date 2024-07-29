@@ -52,6 +52,10 @@ void Matcher::match(std::vector<Landmark> & landmarks, Eigen::Vector2d t_odom2ma
   }
 }
 
+Eigen::Vector2d Matcher::wood_in_map(int id) { return woods_in_map_[id]; }
+
+Eigen::Vector2d Matcher::weight_in_map(int id) { return weights_in_map_[id]; }
+
 void Matcher::match(
   Landmark & landmark, const std::vector<Eigen::Vector2d> & landmarks_in_map,
   Eigen::Vector2d t_odom2map)

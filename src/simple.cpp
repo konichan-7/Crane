@@ -1,5 +1,3 @@
-#include "tasks/auto_crane/localizer.hpp"
-
 #include <yaml-cpp/yaml.h>
 
 #include <Eigen/Dense>
@@ -9,6 +7,7 @@
 #include "io/cboard/cboard.hpp"
 #include "io/command.hpp"
 #include "io/usbcamera/usbcamera.hpp"
+#include "tasks/auto_crane/localizer.hpp"
 #include "tasks/auto_crane/matcher.hpp"
 #include "tasks/auto_crane/solver.hpp"
 #include "tasks/auto_crane/yolov8.hpp"
@@ -45,7 +44,7 @@ int main(int argc, char * argv[])
   tools::Exiter exiter;
   tools::Plotter plotter;
 
-  auto_crane::YOLOV8 yolo("assets/openvino_model_v4/best.xml", classes.size(), classes, "AUTO");
+  auto_crane::YOLOV8 yolo("assets/openvino_model_v5/best.xml", classes.size(), classes, "AUTO");
   auto_crane::Solver solver(config_path);
   auto_crane::Matcher matcher(config_path);
   auto_crane::Localizer localizer(config_path);

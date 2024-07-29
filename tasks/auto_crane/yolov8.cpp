@@ -150,7 +150,7 @@ std::vector<Detection> YOLOV8::filter(std::vector<Detection> & detections)
   }
   int bn = detections.size();
   std::remove_if(detections.begin(), detections.end(), [](Detection & d) {
-    return d.class_id == 0 && (d.box.height * d.box.width > 1e5);
+    return d.class_id == 0 && (d.box.height * d.box.width > 1.5e5);
   });
   int an = detections.size();
   if (an != bn) tools::logger()->debug("filter gripping weight");

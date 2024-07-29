@@ -105,8 +105,8 @@ int main(int argc, char * argv[])
 
     if (t_odo2map_update[0] != 1e6) {
       nlohmann::json data;
-      data["x_odo2map"] = t_odo2map_update[0];
-      data["y_odo2map"] = t_odo2map_update[1];
+      data["x_odo2map_update"] = t_odo2map_update[0];
+      data["y_odo2map_update"] = t_odo2map_update[1];
       plotter.plot(data);
     }
 

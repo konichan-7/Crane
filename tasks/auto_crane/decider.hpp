@@ -46,7 +46,7 @@ public:
   Target choose_target(const std::vector<Target> & targets);
 
   bool judge(
-    const Eigen::Vector3d & p_gripper2odo, const Eigen::Vector3d & t_target2odo,
+    const Eigen::Vector3d & p_gripper2odo, const Eigen::Vector3d & p_target2odo,
     const bool & servo_state, double judge_distance);
 
 private:

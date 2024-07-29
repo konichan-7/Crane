@@ -79,7 +79,7 @@ int main(int argc, char * argv[])
 
     yolo.save_img(img, detections);
 
-    // auto filtered_detections = yolo.filter(detections);
+    auto filtered_detections = yolo.filter(detections);
 
     auto landmarks = solver.solve(detections);
 

@@ -2,6 +2,7 @@
 
 #include <fmt/chrono.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <random>
 
@@ -147,46 +148,13 @@ std::vector<Detection> YOLOV8::filter(const std::vector<Detection> & detections)
   if (detections.size() == 0) {
     return detections;
   }
-
-  std::vector<Detection> targets;
-  Detection wieghts_target, wood_target;
-  int weights_min_distance = 1e6, wood_min_distance = 1e6;
-
-  int weights_count = 0, wood_count = 0;
-
-  for (auto d : detections) {
-    auto distance = std::pow(d.center.x - 960, 2) + std::pow(d.center.y - 540, 2);
-    if (d.class_id == 0) {
-      ++weights_count;
-      if (distance < weights_min_distance) {
-        wieghts_target = d;
-        weights_min_distance = distance;
-      }
-    } else if (d.class_id == 1) {
-    } else if (d.class_id == 2) {
-      ++wood_count;
-      if (distance < wood_min_distance) {
-        wood_target = d;
-        wood_min_distance = distance;
-      }
-    }
-  }
-
-  if (weights_count == 0) {
-    targets.push_back(wood_target);
-  }
-
-  if (wood_count == 0) {
-    targets.push_back(wieghts_target);
-  }
-
-  if (weights_count > 0 && wood_count > 0) {
-    targets.push_back(wieghts_target);
-    targets.push_back(wood_target);
-  }
-
-  tools::logger()->debug("after filter the size of targets:{}", targets.size());
-  return targets;
+  int bn = detections.size();
+  std::remove_if(detections.begin(), detections.end(), [](Detection & d) {
+    return d.class_id == 0 && (d.box.height * d.box.width > 1e5);
+  });
+  int an = detections.size();
+  if (an != bn) tools::logger()->debug("filter gripping weight");
+  return detections;
 }
 
 void YOLOV8::save_img(const cv::Mat & img, const std::vector<Detection> & detections)

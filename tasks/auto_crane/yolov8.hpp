@@ -41,7 +41,7 @@ public:
 
   std::vector<Detection> infer(const cv::Mat & bgr_img);
 
-  std::vector<Detection> filter(const std::vector<Detection> & detections);
+  std::vector<Detection> filter(std::vector<Detection> & detections);
 
   void save_img(const cv::Mat & img, const std::vector<Detection> & detections);
 

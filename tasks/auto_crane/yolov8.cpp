@@ -143,7 +143,7 @@ std::vector<Detection> YOLOV8::parse(double scale, cv::Mat & output) const
   return detections;
 }
 
-std::vector<Detection> YOLOV8::filter(const std::vector<Detection> & detections)
+std::vector<Detection> YOLOV8::filter(std::vector<Detection> & detections)
 {
   if (detections.size() == 0) {
     return detections;

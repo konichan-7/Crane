@@ -48,7 +48,9 @@ void Matcher::match(
           targets.push_back({l, TargetName::WEIGHT});
           t_odo2map1 = l - t_landmark2odo_weights;
           ++count;
-          tools::logger()->info("{}weight matched, weight2map is:{:.3f},{:.3f}", count, l[0], l[1]);
+          tools::logger()->info(
+            "{}weight matched, weight2map is:{:.3f},{:.3f},error is {:.4f}", count, l[0], l[1],
+            error_distance);
           break;
         }
       }
@@ -71,7 +73,9 @@ void Matcher::match(
           targets.push_back(target);
           t_odo2map2 = target.t_target2map - t_landmark2odo_wood;
           ++count;
-          tools::logger()->info("{}wood matched, wood2map is:{:.3f},{:.3f}", count, w[0], w[1]);
+          tools::logger()->info(
+            "{}wood matched, wood2map is:{:.3f},{:.3f},error is {:.4f}", count, w[0], w[1],
+            error_distance);
           break;
         }
       }
@@ -91,7 +95,9 @@ void Matcher::match(
           t_odo2map3 = target.t_target2map - t_landmark2odo_white;
           ++count;
           ++i;
-          tools::logger()->info("{}white matched, white2map is:{:.3f},{:.3f}", count, w[0], w[1]);
+          tools::logger()->info(
+            "{}white matched, white2map is:{:.3f},{:.3f},error is {:.4f}", count, w[0], w[1],
+            error_distance);
           break;
         }
       }

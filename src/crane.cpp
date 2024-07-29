@@ -38,6 +38,7 @@ int main(int argc, char * argv[])
 
   io::USBCamera usbcam(device_name, config_path);
   io::CBoard cboard("can0");
+
   tools::Exiter exiter;
   tools::Plotter plotter;
 
@@ -79,7 +80,7 @@ int main(int argc, char * argv[])
 
     yolo.save_img(img, detections);
 
-    auto filtered_detections = yolo.filter(detections);
+    // auto filtered_detections = yolo.filter(detections);
 
     auto landmarks = solver.solve(detections);
 

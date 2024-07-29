@@ -16,7 +16,7 @@ weight_height: 0.055
 tall_wood_height: 0.2
 short_wood_height: 0.1
 
-max_match_error: 0.1
+max_match_error: 0.2
 
 judge_distance: 0.5
 

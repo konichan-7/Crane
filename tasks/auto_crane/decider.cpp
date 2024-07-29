@@ -109,7 +109,7 @@ io::Command Decider::decide(
   if (state_ == State::FOR_APPROX)
     t_target2odo = target.t_target2map;
   else
-    t_target2odo = target.t_target2map - t_odo2map;
+    t_target2odo = target.t_target2map - t_odo2map + bias_;
 
   Eigen::Vector3d p_target2odo = {t_target2odo[0], t_target2odo[1], get_target_z(target)};
 

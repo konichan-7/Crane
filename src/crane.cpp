@@ -87,11 +87,6 @@ int main(int argc, char * argv[])
 
     t_odo2map_update = localizer.localize(t_odo2map);
 
-    tools::logger()->debug(
-      "after filter the odo2map is {:.3f},{:.3f}", t_odo2map_update[0], t_odo2map_update[1]);
-
-    std::cout << p_gripper2odo << std::endl;
-
     auto command = decider.decide(p_gripper2odo, t_odo2map_update, targets, servo_state);
 
     if (command.x != 0)

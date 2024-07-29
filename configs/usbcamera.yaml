@@ -18,9 +18,9 @@ process_noise: 0.01
 measurement_noise: 0.05
 
 safe_height: -0.1
-crawl_height: -0.234
-short_place_height: 0.25
-tall_place_height: 0.3
+crawl_height: -0.25
+short_place_height: -0.15
+tall_place_height: -0.05
 
 weights_height: 0.365 # 相机坐标系下(单位m)
 tall_wood_height: 0.22

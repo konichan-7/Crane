@@ -237,7 +237,7 @@ int main(int argc, char * argv[])
   io::USBCamera usbcam(device_name, config_path);
   io::CBoard cboard("can0");
 
-  auto_crane::YOLOV8 yolo("assets/openvino_model_v5/best.xml", classes.size(), classes, "AUTO");
+  auto_crane::YOLOV8 yolo("assets/openvino_model_v6/best.xml", classes.size(), classes, "AUTO");
   auto_crane::Solver solver(config_path);
   auto_crane::Matcher matcher(config_path);
   auto_crane::Localizer localizer(config_path);

@@ -110,13 +110,14 @@ void align_weight(
   }
 }
 
-void align_wood(
+Eigen::Vector2d align_wood(
   io::USBCamera & cam, io::CBoard & cboard, auto_crane::YOLOV8 & yolo, auto_crane::Solver & solver,
   auto_crane::Matcher & matcher, int wood_id)
 {
   int reach_cnt = 0;
   bool wood_found = false;
   Eigen::Vector2d wood_in_odom;
+  Eigen::Vector2d align_xy;
 
   while (true) {
     cv::Mat img;
@@ -144,6 +145,7 @@ void align_wood(
       wood_found = true;
       wood_in_odom[0] = l.in_odom[0];
       wood_in_odom[1] = l.in_odom[1] - 0.04;
+      align_xy = wood_in_odom;
       break;
     }
 
@@ -158,6 +160,8 @@ void align_wood(
     cv::imshow("img", img);
     cv::waitKey(1);
   }
+
+  return align_xy;
 }
 
 void get(
@@ -204,11 +208,13 @@ void put(
 
   // 找木桩[id]
   tools::logger()->info("align_wood");
-  align_wood(cam, cboard, yolo, solver, matcher, id);
+  Eigen::Vector2d align_xy = align_wood(cam, cboard, yolo, solver, matcher, id);
 
   tools::logger()->info("go wood");
-  Eigen::Vector3d gripper_in_odom = cboard.odom_at(std::chrono::steady_clock::now());
-  go(cam, cboard, {gripper_in_odom[0], gripper_in_odom[1] + 0.055, 0.0}, true, true);
+
+  // Eigen::Vector3d gripper_in_odom = cboard.odom_at(std::chrono::steady_clock::now());
+  go(cam, cboard, {align_xy[0], align_xy[1] + 0.055, 0.0}, true, true);
+  // go(cam, cboard, {gripper_in_odom[0], gripper_in_odom[1] + 0.055, 0.0}, true, true);
   // std::this_thread::sleep_for(3000ms);
 
   // 降
@@ -253,10 +259,10 @@ int main(int argc, char * argv[])
   put(usbcam, cboard, yolo, solver, matcher, 0);
 
   get(usbcam, cboard, yolo, solver, matcher, 0, 1);
-  put(usbcam, cboard, yolo, solver, matcher, 4);
+  put(usbcam, cboard, yolo, solver, matcher, 3);
 
   get(usbcam, cboard, yolo, solver, matcher, 10, 11);
-  put(usbcam, cboard, yolo, solver, matcher, 3);
+  put(usbcam, cboard, yolo, solver, matcher, 4);
 
   get(usbcam, cboard, yolo, solver, matcher, 8, 9);
   put(usbcam, cboard, yolo, solver, matcher, 2);

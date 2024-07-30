@@ -201,10 +201,11 @@ void put(
   // 去木桩[id]
   Eigen::Vector2d w = matcher.wood_in_map(id);
   auto y_offset = (id != 2 && id != 3) ? -0.05 : -0.01;
+  auto x_offset = (id == 2 || id == 1) ? 0.15 : 0;
   auto z = (id == 4) ? -0.155 : -0.06;
 
   tools::logger()->info("go");
-  go(cam, cboard, {w[0], w[1] + y_offset, 0.0}, true, false);
+  go(cam, cboard, {w[0] + x_offset, w[1] + y_offset, 0.0}, true, false);
 
   // 找木桩[id]
   tools::logger()->info("align_wood");
@@ -229,6 +230,14 @@ void put(
   // 抬
   tools::logger()->info("lift up");
   lift(cam, cboard, 0, false, false);
+
+  if(id == 2) {
+    go(cam, cboard, {align_xy[0]+0.15, align_xy[1] + 0.055, 0.0}, false, false);
+  }
+
+  if(id == 3) {
+    go(cam, cboard, {align_xy[0]-0.15, align_xy[1] + 0.055, 0.0}, false, false);
+  }
 }
 
 int main(int argc, char * argv[])

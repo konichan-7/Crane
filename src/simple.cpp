@@ -94,7 +94,7 @@ auto_crane::Landmark align_weight(
       if (l.name != auto_crane::LandmarkName::WEIGHT) continue;
       if (l.id != id1 && l.id != id2) continue;
 
-      cboard.send({l.in_odom[0], l.in_odom[1], 0, false, false});
+      cboard.send({l.in_odom[0], l.in_odom[1], -0.005, false, false});
 
       if ((l.in_odom - gripper_in_odom.head<2>()).norm() < EPS)
         reach_cnt++;
@@ -156,7 +156,7 @@ Eigen::Vector2d align_wood(
 
     if (reach_cnt > REACH_CNT) break;
 
-    if (wood_found) cboard.send({wood_in_odom[0], wood_in_odom[1], 0, true, false});
+    if (wood_found) cboard.send({wood_in_odom[0], wood_in_odom[1], -0.005, true, false});
 
     if (wood_found && (wood_in_odom - gripper_in_odom.head<2>()).norm() < EPS) reach_cnt++;
 
@@ -179,7 +179,9 @@ void get(
   Eigen::Vector2d center = (w1 + w2) * 0.5;
 
   tools::logger()->info("go");
-  go(cam, cboard, {center[0] + t_map2odom[0], center[1] - 0.05 + t_map2odom[1], 0.0}, false, false);
+  go(
+    cam, cboard, {center[0] + t_map2odom[0], center[1] - 0.05 + t_map2odom[1], -0.005}, false,
+    false);
 
   // 对齐砝码[id1]或砝码[id2]
   tools::logger()->info("align_weight");
@@ -197,7 +199,7 @@ void get(
 
   // 抬
   tools::logger()->info("lift up");
-  lift(cam, cboard, 0.0, true, false);
+  lift(cam, cboard, -0.005, true, false);
 }
 
 void put(
@@ -213,7 +215,7 @@ void put(
 
   tools::logger()->info("go");
   go(
-    cam, cboard, {w[0] + x_offset + t_map2odom[0], w[1] + y_offset + t_map2odom[1], 0.0}, true,
+    cam, cboard, {w[0] + x_offset + t_map2odom[0], w[1] + y_offset + t_map2odom[1], -0.005}, true,
     false);
 
   // 找木桩[id]
@@ -221,7 +223,7 @@ void put(
   Eigen::Vector2d align_xy = align_wood(cam, cboard, yolo, solver, matcher, id);
 
   tools::logger()->info("go wood");
-  go(cam, cboard, {align_xy[0], align_xy[1] + 0.055, 0.0}, true, true);
+  go(cam, cboard, {align_xy[0], align_xy[1] + 0.055, -0.005}, true, true);
 
   // 降
   tools::logger()->info("lift down");
@@ -234,14 +236,14 @@ void put(
 
   // 抬
   tools::logger()->info("lift up");
-  lift(cam, cboard, 0, false, false);
+  lift(cam, cboard, -0.005, false, false);
 
   if (id == 2) {
-    go(cam, cboard, {align_xy[0] + 0.15, align_xy[1] + 0.055, 0.0}, false, false);
+    go(cam, cboard, {align_xy[0] + 0.15, align_xy[1] + 0.055, -0.005}, false, false);
   }
 
   if (id == 3) {
-    go(cam, cboard, {align_xy[0] - 0.15, align_xy[1] + 0.055, 0.0}, false, false);
+    go(cam, cboard, {align_xy[0] - 0.15, align_xy[1] + 0.055, -0.005}, false, false);
   }
 }
 

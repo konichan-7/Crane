@@ -142,7 +142,7 @@ void align_wood(
 
       wood_found = true;
       wood_in_odom[0] = l.in_odom[0];
-      wood_in_odom[1] = l.in_odom[1] - 0.05;
+      wood_in_odom[1] = l.in_odom[1] - 0.04;
       break;
     }
 
@@ -196,7 +196,7 @@ void put(
   // 去木桩[id]
   Eigen::Vector2d w = matcher.wood_in_map(id);
   auto y_offset = (id != 2 && id != 3) ? -0.05 : -0.01;
-  auto z = (id == 4) ? -0.16 : -0.06;
+  auto z = (id == 4) ? -0.155 : -0.06;
 
   tools::logger()->info("go");
   go(cam, cboard, {w[0], w[1] + y_offset, 0.0}, true);
@@ -207,7 +207,8 @@ void put(
 
   tools::logger()->info("go wood");
   Eigen::Vector3d gripper_in_odom = cboard.odom_at(std::chrono::steady_clock::now());
-  go(cam, cboard, {gripper_in_odom[0], gripper_in_odom[1] + 0.05, 0.0}, true);
+  go(cam, cboard, {gripper_in_odom[0], gripper_in_odom[1] + 0.055, 0.0}, true);
+  std::this_thread::sleep_for(3000ms);
 
   // 降
   tools::logger()->info("lift down");
@@ -250,11 +251,17 @@ int main(int argc, char * argv[])
   get(usbcam, cboard, yolo, solver, matcher, 2, 3);
   put(usbcam, cboard, yolo, solver, matcher, 0);
 
-  // get(usbcam, cboard, yolo, solver, matcher, 0, 1);
-  // put(usbcam, cboard, yolo, solver, matcher, 4);
+  get(usbcam, cboard, yolo, solver, matcher, 0, 1);
+  put(usbcam, cboard, yolo, solver, matcher, 4);
 
-  // get(usbcam, cboard, yolo, solver, matcher, 10, 11);
-  // put(usbcam, cboard, yolo, solver, matcher, 3);
+  get(usbcam, cboard, yolo, solver, matcher, 10, 11);
+  put(usbcam, cboard, yolo, solver, matcher, 3);
+
+  get(usbcam, cboard, yolo, solver, matcher, 8, 9);
+  put(usbcam, cboard, yolo, solver, matcher, 2);
+
+  get(usbcam, cboard, yolo, solver, matcher, 6, 7);
+  put(usbcam, cboard, yolo, solver, matcher, 1);
 
   return 0;
 }

@@ -9,6 +9,7 @@ struct Command
   double y;
   double z;
   bool grip;
+  bool slow;
 };
 
 }  // namespace io

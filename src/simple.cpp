@@ -24,7 +24,8 @@ const std::string keys =
 
 const std::vector<std::string> classes = {"weights", "white", "wood"};
 
-void go(io::USBCamera & cam, io::CBoard & cboard, Eigen::Vector3d target_in_odom, bool grip)
+void go(
+  io::USBCamera & cam, io::CBoard & cboard, Eigen::Vector3d target_in_odom, bool grip, bool slow)
 {
   auto reach_cnt = 0;
 
@@ -42,7 +43,7 @@ void go(io::USBCamera & cam, io::CBoard & cboard, Eigen::Vector3d target_in_odom
 
     if (reach_cnt > REACH_CNT) break;
 
-    cboard.send({target_in_odom[0], target_in_odom[1], target_in_odom[2], grip});
+    cboard.send({target_in_odom[0], target_in_odom[1], target_in_odom[2], grip, slow});
 
     tools::draw_text(
       img,
@@ -58,11 +59,11 @@ void go(io::USBCamera & cam, io::CBoard & cboard, Eigen::Vector3d target_in_odom
   }
 }
 
-void lift(io::USBCamera & cam, io::CBoard & cboard, double z, bool grip)
+void lift(io::USBCamera & cam, io::CBoard & cboard, double z, bool grip, bool slow)
 {
   auto t = std::chrono::steady_clock::now();
   Eigen::Vector3d gripper_in_odom = cboard.odom_at(t);
-  go(cam, cboard, {gripper_in_odom[0], gripper_in_odom[1], z}, grip);
+  go(cam, cboard, {gripper_in_odom[0], gripper_in_odom[1], z}, grip, slow);
 }
 
 void align_weight(
@@ -90,7 +91,7 @@ void align_weight(
       if (l.name != auto_crane::LandmarkName::WEIGHT) continue;
       if (l.id != id1 && l.id != id2) continue;
 
-      cboard.send({l.in_odom[0], l.in_odom[1], 0, false});
+      cboard.send({l.in_odom[0], l.in_odom[1], 0, false, false});
 
       if ((l.in_odom - gripper_in_odom.head<2>()).norm() < EPS)
         reach_cnt++;
@@ -148,7 +149,7 @@ void align_wood(
 
     if (reach_cnt > REACH_CNT) break;
 
-    if (wood_found) cboard.send({wood_in_odom[0], wood_in_odom[1], 0, true});
+    if (wood_found) cboard.send({wood_in_odom[0], wood_in_odom[1], 0, true, false});
 
     if (wood_found && (wood_in_odom - gripper_in_odom.head<2>()).norm() < EPS) reach_cnt++;
 
@@ -169,7 +170,7 @@ void get(
   Eigen::Vector2d center = (w1 + w2) * 0.5;
 
   tools::logger()->info("go");
-  go(cam, cboard, {center[0], center[1] - 0.05, 0.0}, false);
+  go(cam, cboard, {center[0], center[1] - 0.05, 0.0}, false, false);
 
   // 对齐砝码[id1]或砝码[id2]
   tools::logger()->info("align_weight");
@@ -177,16 +178,16 @@ void get(
 
   // 降
   tools::logger()->info("lift down");
-  lift(cam, cboard, -0.26, false);
+  lift(cam, cboard, -0.26, false, false);
 
   // 取
   tools::logger()->info("grip");
-  lift(cam, cboard, -0.26, true);
+  lift(cam, cboard, -0.26, true, false);
   std::this_thread::sleep_for(500ms);
 
   // 抬
   tools::logger()->info("lift up");
-  lift(cam, cboard, 0.0, true);
+  lift(cam, cboard, 0.0, true, false);
 }
 
 void put(
@@ -199,7 +200,7 @@ void put(
   auto z = (id == 4) ? -0.155 : -0.06;
 
   tools::logger()->info("go");
-  go(cam, cboard, {w[0], w[1] + y_offset, 0.0}, true);
+  go(cam, cboard, {w[0], w[1] + y_offset, 0.0}, true, false);
 
   // 找木桩[id]
   tools::logger()->info("align_wood");
@@ -207,21 +208,21 @@ void put(
 
   tools::logger()->info("go wood");
   Eigen::Vector3d gripper_in_odom = cboard.odom_at(std::chrono::steady_clock::now());
-  go(cam, cboard, {gripper_in_odom[0], gripper_in_odom[1] + 0.055, 0.0}, true);
-  std::this_thread::sleep_for(3000ms);
+  go(cam, cboard, {gripper_in_odom[0], gripper_in_odom[1] + 0.055, 0.0}, true, true);
+  // std::this_thread::sleep_for(3000ms);
 
   // 降
   tools::logger()->info("lift down");
-  lift(cam, cboard, z, true);
+  lift(cam, cboard, z, true, false);
 
   // 放
   tools::logger()->info("grip");
-  lift(cam, cboard, z, false);
+  lift(cam, cboard, z, false, false);
   std::this_thread::sleep_for(500ms);
 
   // 抬
   tools::logger()->info("lift up");
-  lift(cam, cboard, 0, false);
+  lift(cam, cboard, 0, false, false);
 }
 
 int main(int argc, char * argv[])

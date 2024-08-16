@@ -11,4 +11,4 @@ add_library(io OBJECT
     crane/crane.cpp
 )
 
-target_link_libraries(io yaml-cpp pthread ${OpenCV_LIBS})
+target_link_libraries(io yaml-cpp ${OpenCV_LIBS})

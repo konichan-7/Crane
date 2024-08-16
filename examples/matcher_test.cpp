@@ -7,7 +7,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "io/cboard/cboard.hpp"
-#include "io/command.hpp"
+#include "io/crane/crane.hpp"
 #include "io/usbcamera/usbcamera.hpp"
 #include "tasks/auto_crane/solver.hpp"
 #include "tasks/auto_crane/yolov8.hpp"
@@ -36,6 +36,7 @@ int main(int argc, char * argv[])
   io::USBCamera usbcam(left ? "video0" : "video2", config_path);
   io::CBoard cboard_left("can0", true);
   io::CBoard cboard_right("can0", false);
+  io::Crane crane(cboard_left, cboard_right, config_path);
 
   tools::Exiter exiter;
   tools::Plotter plotter;
@@ -51,17 +52,7 @@ int main(int argc, char * argv[])
     std::chrono::steady_clock::time_point t;
 
     usbcam.read(img, t);
-    Eigen::Vector3d gripper_in_odom_left = cboard_left.odom_at(t);
-    Eigen::Vector3d gripper_in_odom_right = cboard_right.odom_at(t);
-
-    // clang-format off
-    Eigen::Vector3d gripper_in_odom{
-      gripper_in_odom_left[0], 
-      left ? gripper_in_odom_left[1] : gripper_in_odom_right[1],
-      left ? gripper_in_odom_left[2] : gripper_in_odom_right[2]
-    };
-    // clang-format on
-
+    Eigen::Vector3d gripper_in_odom = crane.odom_at(t, left);
     Eigen::Vector2d t_gripper2odom = gripper_in_odom.head<2>();
 
     auto detections = yolo.infer(img);

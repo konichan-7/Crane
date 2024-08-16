@@ -7,6 +7,9 @@ usb_exposure: 500 # 1-80000
 usb_gamma_: 160
 usb_gain_: 10 # 0-96
 
+y_left_in_odom: 0.456
+y_right_in_odom: -0.568
+
 z_cam2map: 0.42
 white_height: 0
 weight_height: 0.055

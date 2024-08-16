@@ -25,6 +25,8 @@ Eigen::Vector3d CBoard::odom_at(std::chrono::steady_clock::time_point t)
     data_ahead_ = data_behind_;
   }
 
+  if (data_ahead_.t > t) tools::logger()->warn("[CBoard] ahead of time!");
+
   auto t_a = data_ahead_.t;
   auto t_b = data_behind_.t;
   auto t_c = t;

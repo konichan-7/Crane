@@ -19,8 +19,6 @@ public:
 
   void send(Command command) const;
 
-  bool servo();
-
 private:
   struct OdomData
   {
@@ -32,7 +30,6 @@ private:
   SocketCAN can_;
   OdomData data_ahead_;
   OdomData data_behind_;
-  bool grip_;
 
   void callback(const can_frame & frame);
 };

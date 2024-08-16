@@ -17,8 +17,7 @@ int main()
     auto t = std::chrono::steady_clock::now();
 
     Eigen::Vector3d xyz = cboard.odom_at(t);
-    bool servo_state = cboard.servo();
-    tools::logger()->info("{:.3f} {:.3f} {:.3f} {}", xyz[0], xyz[1], xyz[2], servo_state);
+    tools::logger()->info("{:.3f} {:.3f} {:.3f}", xyz[0], xyz[1], xyz[2]);
 
     std::this_thread::sleep_for(10ms);
   }

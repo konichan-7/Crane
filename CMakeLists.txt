@@ -19,9 +19,6 @@ add_subdirectory(tools)
 add_subdirectory(io)
 add_subdirectory(tasks/auto_crane)
 
-# add_executable(capture examples/capture.cpp)
-# target_link_libraries(capture ${OpenCV_LIBS} io fmt::fmt tools yaml-cpp)
-
 add_executable(cboard_test examples/cboard_test.cpp)
 target_link_libraries(cboard_test ${OpenCV_LIBS} fmt::fmt io tools)
 

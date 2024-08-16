@@ -13,10 +13,10 @@ weight_height: 0.055
 tall_wood_height: 0.2
 short_wood_height: 0.1
 
-x_gripper_in_cam_left: 0.0
-y_gripper_in_cam_left: 0.0
-x_gripper_in_cam_right: 0.0
-y_gripper_in_cam_right: 0.0
+x_gripper_in_cam_left: 0.01
+y_gripper_in_cam_left: 0.02
+x_gripper_in_cam_right: 0.02
+y_gripper_in_cam_right: 0.05
 
 max_match_error: 0.2
 

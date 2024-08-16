@@ -11,7 +11,7 @@ using namespace std::chrono_literals;
 
 const std::string keys =
   "{help h usage ? |      | 输出命令行参数说明}"
-  "{left           |      | bool          }";
+  "{left l         |      | bool          }";
 
 int main(int argc, char * argv[])
 {

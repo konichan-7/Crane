@@ -10,7 +10,7 @@ const std::string keys =
   "{y              |      | y坐标，单位m    }"
   "{z              |      | z坐标，单位m    }"
   "{grip           |      | bool          }"
-  "{left           |      | bool          }";
+  "{left l         |      | bool          }";
 
 using namespace std::chrono_literals;
 

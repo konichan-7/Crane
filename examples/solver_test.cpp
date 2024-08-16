@@ -75,7 +75,7 @@ int main(int argc, char * argv[])
       break;
     }
 
-    crane.cmd({target_in_odom[0], target_in_odom[1], gripper_in_odom_left[2], false}, left);
+    crane.cmd({target_in_odom[0], target_in_odom[1], gripper_in_odom[2], false}, left);
 
     // -------------------- 调试输出 --------------------
 

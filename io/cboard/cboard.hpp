@@ -13,7 +13,7 @@ namespace io
 class CBoard
 {
 public:
-  CBoard(const std::string & interface);
+  CBoard(const std::string & interface, bool left);
 
   Eigen::Vector3d odom_at(std::chrono::steady_clock::time_point t);
 
@@ -25,6 +25,9 @@ private:
     Eigen::Vector3d xyz;
     std::chrono::steady_clock::time_point t;
   };
+
+  const uint16_t rx_id_;
+  const uint16_t tx_id_;
 
   tools::ThreadSafeQueue<OdomData> queue_;  // 必须在can_之前初始化，否则存在死锁的可能
   SocketCAN can_;

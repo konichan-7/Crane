@@ -19,26 +19,23 @@ add_subdirectory(tools)
 add_subdirectory(io)
 add_subdirectory(tasks/auto_crane)
 
-add_executable(capture examples/capture.cpp)
-target_link_libraries(capture ${OpenCV_LIBS} io fmt::fmt tools yaml-cpp)
+# add_executable(capture examples/capture.cpp)
+# target_link_libraries(capture ${OpenCV_LIBS} io fmt::fmt tools yaml-cpp)
 
 add_executable(cboard_test examples/cboard_test.cpp)
-target_link_libraries(cboard_test fmt::fmt io tools)
+target_link_libraries(cboard_test ${OpenCV_LIBS} fmt::fmt io tools)
 
 add_executable(cboard_tx_test examples/cboard_tx_test.cpp)
-target_link_libraries(cboard_tx_test fmt::fmt io tools)
+target_link_libraries(cboard_tx_test ${OpenCV_LIBS} fmt::fmt io tools)
 
-add_executable(usbcamera_test examples/usbcamera_test.cpp)
-target_link_libraries(usbcamera_test ${OpenCV_LIBS} io fmt::fmt tools)
+# add_executable(usbcamera_test examples/usbcamera_test.cpp)
+# target_link_libraries(usbcamera_test ${OpenCV_LIBS} io fmt::fmt tools)
 
-add_executable(t_cam2gripper_test examples/t_cam2gripper_test.cpp)
-target_link_libraries(t_cam2gripper_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)
+# add_executable(t_cam2gripper_test examples/t_cam2gripper_test.cpp)
+# target_link_libraries(t_cam2gripper_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)
 
-add_executable(matcher_test examples/matcher_test.cpp)
-target_link_libraries(matcher_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)
+# add_executable(matcher_test examples/matcher_test.cpp)
+# target_link_libraries(matcher_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)
 
-add_executable(simple src/simple.cpp)
-target_link_libraries(simple ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)
-
-# add_executable(crane src/crane.cpp)
-# target_link_libraries(crane ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)
+# add_executable(simple src/simple.cpp)
+# target_link_libraries(simple ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)

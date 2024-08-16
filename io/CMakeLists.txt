@@ -10,5 +10,4 @@ add_library(io OBJECT
     cboard/cboard.cpp
 )
 
-
 target_link_libraries(io yaml-cpp pthread ${OpenCV_LIBS})

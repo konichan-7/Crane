@@ -6,8 +6,10 @@
 
 namespace io
 {
-CBoard::CBoard(const std::string & interface)
-: queue_(5000),
+CBoard::CBoard(const std::string & interface, bool left)
+: rx_id_(left ? 0x102 : 0x103),
+  tx_id_(left ? 0x100 : 0x101),
+  queue_(5000),
   // 注意: callback的运行会早于Cboard构造函数的完成
   can_(interface, std::bind(&CBoard::callback, this, std::placeholders::_1))
 {
@@ -43,7 +45,7 @@ void CBoard::send(Command command) const
   command.y = -command.y;
 
   can_frame frame;
-  frame.can_id = 0x100;
+  frame.can_id = tx_id_;
   frame.can_dlc = 8;
   frame.data[0] = (int16_t)(command.x * 1e3) >> 8;
   frame.data[1] = (int16_t)(command.x * 1e3);
@@ -65,7 +67,7 @@ void CBoard::callback(const can_frame & frame)
 {
   auto t = std::chrono::steady_clock::now();
 
-  if (frame.can_id != 0x101) return;
+  if (frame.can_id != rx_id_) return;
 
   auto x = (int16_t)(frame.data[0] << 8 | frame.data[1]) / 1e3;
   auto y = (int16_t)(frame.data[2] << 8 | frame.data[3]) / 1e3;

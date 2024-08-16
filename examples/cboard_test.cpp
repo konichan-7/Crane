@@ -1,17 +1,31 @@
 #include "io/cboard/cboard.hpp"
 
 #include <chrono>
+#include <opencv2/opencv.hpp>
 #include <thread>
 
 #include "tools/exiter.hpp"
+#include "tools/logger.hpp"
 
 using namespace std::chrono_literals;
 
-int main()
+const std::string keys =
+  "{help h usage ? |      | 输出命令行参数说明}"
+  "{left           |      | bool          }";
+
+int main(int argc, char * argv[])
 {
+  cv::CommandLineParser cli(argc, argv, keys);
+  if (cli.has("help") || !cli.has("left")) {
+    cli.printMessage();
+    return 0;
+  }
+
+  auto left = cli.get<bool>("left");
+
   tools::Exiter exiter;
 
-  io::CBoard cboard("can0");
+  io::CBoard cboard("can0", left);
 
   while (!exiter.exit()) {
     auto t = std::chrono::steady_clock::now();

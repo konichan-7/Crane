@@ -15,9 +15,9 @@ public:
   Solver(const std::string & config_path);
 
   std::vector<Landmark> solve(
-    const std::vector<Detection> & detections, Eigen::Vector2d t_gripper2odom);
+    const std::vector<Detection> & detections, Eigen::Vector2d t_gripper2odom, bool left);
 
-  void update_wood(std::vector<Landmark> & landmarks, Eigen::Vector2d t_gripper2odom);
+  void update_wood(std::vector<Landmark> & landmarks, Eigen::Vector2d t_gripper2odom, bool left);
 
 private:
   double z_cam2map_;
@@ -25,7 +25,10 @@ private:
   double weight_height_;
   double tall_wood_height_;
   double short_wood_height_;
-  Eigen::Vector2d t_cam2gripper_;
+  Eigen::Vector2d t_cam2gripper_left_;
+  Eigen::Vector2d t_cam2gripper_right_;
+  Eigen::Matrix2d R_cam2gripper_left_{{1, 0}, {0, -1}};
+  Eigen::Matrix2d R_cam2gripper_right_{{-1, 0}, {0, 1}};
 };
 
 }  // namespace auto_crane

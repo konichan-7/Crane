@@ -7,14 +7,16 @@ usb_exposure: 500 # 1-80000
 usb_gamma_: 160
 usb_gain_: 10 # 0-96
 
-x_cam2gripper: -0.02
-y_cam2gripper: 0.02
-
 z_cam2map: 0.42
 white_height: 0
 weight_height: 0.055
 tall_wood_height: 0.2
 short_wood_height: 0.1
+
+x_gripper_in_cam_left: 0.0
+y_gripper_in_cam_left: 0.0
+x_gripper_in_cam_right: 0.0
+y_gripper_in_cam_right: 0.0
 
 max_match_error: 0.2
 

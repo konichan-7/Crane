@@ -25,11 +25,11 @@ target_link_libraries(cboard_test ${OpenCV_LIBS} fmt::fmt io tools)
 add_executable(cboard_tx_test examples/cboard_tx_test.cpp)
 target_link_libraries(cboard_tx_test ${OpenCV_LIBS} fmt::fmt io tools)
 
-# add_executable(usbcamera_test examples/usbcamera_test.cpp)
-# target_link_libraries(usbcamera_test ${OpenCV_LIBS} io fmt::fmt tools)
+add_executable(usbcamera_test examples/usbcamera_test.cpp)
+target_link_libraries(usbcamera_test ${OpenCV_LIBS} io fmt::fmt tools)
 
-# add_executable(t_cam2gripper_test examples/t_cam2gripper_test.cpp)
-# target_link_libraries(t_cam2gripper_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)
+add_executable(t_cam2gripper_test examples/t_cam2gripper_test.cpp)
+target_link_libraries(t_cam2gripper_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)
 
 # add_executable(matcher_test examples/matcher_test.cpp)
 # target_link_libraries(matcher_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)

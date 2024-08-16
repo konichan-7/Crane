@@ -17,29 +17,25 @@
 
 const std::string keys =
   "{help h usage ? |                        | 输出命令行参数说明 }"
-  "{name n         | video0                 | 端口名称 }"
+  "{left l         |                        | bool }"
   "{@config-path   | configs/usbcamera.yaml | 位置参数，yaml配置文件路径 }";
 
 int main(int argc, char * argv[])
 {
   cv::CommandLineParser cli(argc, argv, keys);
-  if (cli.has("help")) {
+  if (cli.has("help") || !cli.has("left")) {
     cli.printMessage();
     return 0;
   }
 
-  auto device_name = cli.get<std::string>("name");
+  auto left = cli.get<bool>("left");
   auto config_path = cli.get<std::string>(0);
-
-  auto yaml = YAML::LoadFile(config_path);
-  auto x_cam2gripper = yaml["x_cam2gripper"].as<double>();
-  auto y_cam2gripper = yaml["y_cam2gripper"].as<double>();
-  Eigen::Vector2d t_cam2gripper = {x_cam2gripper, y_cam2gripper};
 
   std::vector<std::string> classes = {"weights", "white", "wood"};
 
-  io::USBCamera usbcam(device_name, config_path);
-  io::CBoard cboard("can0");
+  io::USBCamera usbcam(left ? "video0" : "video2", config_path);
+  io::CBoard cboard_left("can0", true);
+  io::CBoard cboard_right("can0", false);
 
   tools::Exiter exiter;
   tools::Plotter plotter;
@@ -55,13 +51,23 @@ int main(int argc, char * argv[])
     std::chrono::steady_clock::time_point t;
 
     usbcam.read(img, t);
-    Eigen::Vector3d gripper_in_odom = cboard.odom_at(t);
+    Eigen::Vector3d gripper_in_odom_left = cboard_left.odom_at(t);
+    Eigen::Vector3d gripper_in_odom_right = cboard_right.odom_at(t);
+
+    // clang-format off
+    Eigen::Vector3d gripper_in_odom{
+      gripper_in_odom_left[0], 
+      left ? gripper_in_odom_left[1] : gripper_in_odom_right[1],
+      left ? gripper_in_odom_left[2] : gripper_in_odom_right[2]
+    };
+    // clang-format on
+
     Eigen::Vector2d t_gripper2odom = gripper_in_odom.head<2>();
 
     auto detections = yolo.infer(img);
     yolo.save_img(img, detections);
 
-    auto landmarks = solver.solve(detections, t_gripper2odom);
+    auto landmarks = solver.solve(detections, t_gripper2odom, left);
 
     tools::logger()->info("-------------------- Match Result --------------------");
     matcher.match(landmarks, t_odom2map);

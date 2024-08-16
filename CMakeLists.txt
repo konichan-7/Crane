@@ -31,8 +31,8 @@ target_link_libraries(usbcamera_test ${OpenCV_LIBS} fmt::fmt io tools)
 add_executable(solver_test examples/solver_test.cpp)
 target_link_libraries(solver_test ${OpenCV_LIBS} fmt::fmt io tools auto_crane)
 
-# add_executable(matcher_test examples/matcher_test.cpp)
-# target_link_libraries(matcher_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)
+add_executable(matcher_test examples/matcher_test.cpp)
+target_link_libraries(matcher_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)
 
 # add_executable(simple src/simple.cpp)
 # target_link_libraries(simple ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)

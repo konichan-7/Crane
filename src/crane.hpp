@@ -33,6 +33,10 @@ private:
   io::Command left_last_cmd_{0.0, 0.0, 0.0, false, false};
   io::Command right_last_cmd_{0.0, 0.0, 0.0, false, false};
 
+  double last_x(bool left) const;
+  double last_y(bool left) const;
+  double last_z(bool left) const;
+
   void read(cv::Mat & img, std::chrono::steady_clock::time_point & t, bool left);
   Eigen::Vector3d odom_at(std::chrono::steady_clock::time_point t, bool left);
 
@@ -41,7 +45,7 @@ private:
 
   void go(Eigen::Vector3d target_in_odom, bool left);
 
-  void align_weight(int id1, int id2, bool left);
+  void align(int id1, int id2, bool left);
 };
 
 #endif  // SRC__CRANE_HPP

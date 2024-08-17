@@ -39,6 +39,8 @@ void Crane::get(int id1, int id2, bool left)
   this->go({center[0], center[1], this->last_z(left)}, left);
   this->align(id1, id2, left);
   this->go({this->last_x(left), this->last_y(left), -0.26}, left);
+  this->grip(true, left);
+  this->go({this->last_x(left), this->last_y(left), -0.005}, left);
 }
 
 void Crane::put(int id, bool left) {}
@@ -193,6 +195,26 @@ void Crane::align(int id1, int id2, bool left)
       reach_cnt = 0;
 
     if (reach_cnt > REACH_CNT) break;
+  }
+}
+
+void Crane::grip(bool grip, bool left)
+{
+  tools::logger()->info("[Crane] grip {}", left ? "left" : "right");
+
+  auto command = left ? left_last_cmd_ : right_last_cmd_;
+  command.grip = true;
+
+  for (int i = 0; i < 20; i++) {
+    cv::Mat img;
+    std::chrono::steady_clock::time_point t;
+    this->read(img, t, left);
+
+    cv::resize(img, img, {}, 0.5, 0.5);
+    cv::imshow("img", img);
+    cv::waitKey(1);
+
+    this->cmd(command, left);
   }
 }
 

@@ -44,8 +44,8 @@ private:
   void cmd(Eigen::Vector3d target_in_odom, bool left);
 
   void go(Eigen::Vector3d target_in_odom, bool left);
-
   void align(int id1, int id2, bool left);
+  void grip(bool grip, bool left);
 };
 
 #endif  // SRC__CRANE_HPP

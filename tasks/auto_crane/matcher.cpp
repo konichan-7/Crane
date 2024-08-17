@@ -74,10 +74,10 @@ void Matcher::match(
   }
 
   if (min_match_error > max_match_error_) {
-    tools::logger()->warn(
-      "[Matcher] [{}_{}] large min_match_error: {:.3f}", auto_crane::LANDMARK_NAMES[landmark.name],
-      matched, min_match_error);
-    landmark.name = LandmarkName::INVALID;
+    // tools::logger()->warn(
+    //   "[Matcher] [{}_{}] large min_match_error: {:.3f}", auto_crane::LANDMARK_NAMES[landmark.name],
+    //   matched, min_match_error);
+    // landmark.name = LandmarkName::INVALID;
     return;
   }
 

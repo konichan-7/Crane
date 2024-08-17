@@ -32,18 +32,37 @@ Crane::Crane(const std::string & config_path)
 
 void Crane::get(int id1, int id2, bool left)
 {
-  Eigen::Vector2d w1 = matcher_.weight_in_map(id1);
-  Eigen::Vector2d w2 = matcher_.weight_in_map(id2);
-  Eigen::Vector2d center = (w1 + w2) * 0.5;
+  Eigen::Vector2d in_map = (matcher_.weight_in_map(id2) + matcher_.weight_in_map(id1)) * 0.5;
+  Eigen::Vector2d in_odom = in_map + t_map2odom_;
+  in_odom[1] += left ? -0.15 : 0.15;
 
-  this->go({center[0], center[1], this->last_z(left)}, left);
+  this->go({in_odom[0], in_odom[1], this->last_z(left)}, left);
   this->align(id1, id2, left);
+
   this->go({this->last_x(left), this->last_y(left), -0.26}, left);
   this->grip(true, left);
   this->go({this->last_x(left), this->last_y(left), -0.005}, left);
 }
 
-void Crane::put(int id, bool left) {}
+void Crane::put(int id, bool left)
+{
+  Eigen::Vector2d in_odom = matcher_.wood_in_map(id) + t_map2odom_;
+  in_odom[1] += left ? -0.15 : 0.15;
+  auto z = (id == 4) ? -0.155 : -0.06;
+
+  this->go({in_odom[0], in_odom[1], this->last_z(left)}, left);
+  this->align(id, -1, left);
+
+  auto & last_cmd = left ? left_last_cmd_ : right_last_cmd_;
+  last_cmd.slow = true;
+  this->go(
+    {this->last_x(left), this->last_y(left) + (left ? 0.055 : -0.055), this->last_z(left)}, left);
+  last_cmd.slow = false;
+
+  this->go({this->last_x(left), this->last_y(left), z}, left);
+  this->grip(false, left);
+  this->go({this->last_x(left), this->last_y(left), -0.005}, left);
+}
 
 double Crane::last_x(bool left) const
 {
@@ -147,10 +166,14 @@ void Crane::align(int id1, int id2, bool left)
 {
   tools::logger()->info("[Crane] align {}", left ? "left" : "right");
 
-  int reach_cnt = 0;
-  auto name = (id2 != -1) ? auto_crane::LandmarkName::WEIGHT
-                          : ((id1 != 4) ? auto_crane::LandmarkName::TALL_WOOD
-                                        : auto_crane::LandmarkName::SHORT_WOOD);
+  auto reach_cnt = 0;
+  auto is_wood = (id2 == -1);
+  auto name = !is_wood ? auto_crane::LandmarkName::WEIGHT
+                       : ((id1 != 4) ? auto_crane::LandmarkName::TALL_WOOD
+                                     : auto_crane::LandmarkName::SHORT_WOOD);
+
+  auto found = false;
+  auto_crane::Landmark target;
 
   while (true) {
     cv::Mat img;
@@ -172,21 +195,18 @@ void Crane::align(int id1, int id2, bool left)
     matcher_.match(landmarks, -t_map2odom_);
     solver_.update_wood(landmarks, t_gripper2odom, left);
 
-    bool found = false;
-    Eigen::Vector3d target_in_odom;
-
     for (const auto & l : landmarks) {
       if (l.name != name) continue;
       if (l.id != id1 && l.id != id2) continue;
       found = true;
-      target_in_odom = {l.in_odom[0], l.in_odom[1], this->last_z(left)};
+      target = l;
       break;
     }
 
-    if (!found) {
-      tools::logger()->warn("[Crane] weight not found!");
-      continue;
-    }
+    if (!found) continue;
+
+    Eigen::Vector3d target_in_odom{target.in_odom[0], target.in_odom[1], this->last_z(left)};
+    if (is_wood) target_in_odom[1] += left ? -0.04 : 0.04;
 
     this->cmd(target_in_odom, left);
     if ((gripper_in_odom - target_in_odom).norm() < EPS)
@@ -196,6 +216,8 @@ void Crane::align(int id1, int id2, bool left)
 
     if (reach_cnt > REACH_CNT) break;
   }
+
+  // if (!is_wood) t_map2odom_ = target.in_odom - target.in_map;
 }
 
 void Crane::grip(bool grip, bool left)
@@ -203,7 +225,7 @@ void Crane::grip(bool grip, bool left)
   tools::logger()->info("[Crane] grip {}", left ? "left" : "right");
 
   auto command = left ? left_last_cmd_ : right_last_cmd_;
-  command.grip = true;
+  command.grip = grip;
 
   for (int i = 0; i < 20; i++) {
     cv::Mat img;

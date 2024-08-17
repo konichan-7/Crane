@@ -26,14 +26,18 @@ Crane::Crane(const std::string & config_path)
   matcher_(config_path)
 {
   auto yaml = YAML::LoadFile(config_path);
-  y_left_in_odom_ = yaml["y_left_in_odom"].as<double>();
-  y_right_in_odom_ = yaml["y_right_in_odom"].as<double>();
+  auto y_left_odom_in_map = yaml["y_left_odom_in_map"].as<double>();
+  auto y_right_odom_in_map = yaml["y_right_odom_in_map"].as<double>();
+  t_map_to_left_odom_ = {0.0, -y_left_odom_in_map};
+  t_map_to_right_odom_ = {0.0, -y_right_odom_in_map};
 }
 
 void Crane::get(int id1, int id2, bool left)
 {
+  Eigen::Vector2d & t_map2odom = left ? t_map_to_left_odom_ : t_map_to_right_odom_;
+
   Eigen::Vector2d in_map = (matcher_.weight_in_map(id2) + matcher_.weight_in_map(id1)) * 0.5;
-  Eigen::Vector2d in_odom = in_map + t_map2odom_;
+  Eigen::Vector2d in_odom = in_map + t_map2odom;
   in_odom[1] += left ? -0.15 : 0.15;
 
   this->go({in_odom[0], in_odom[1], this->last_z(left)}, left);
@@ -46,7 +50,9 @@ void Crane::get(int id1, int id2, bool left)
 
 void Crane::put(int id, bool left)
 {
-  Eigen::Vector2d in_odom = matcher_.wood_in_map(id) + t_map2odom_;
+  Eigen::Vector2d & t_map2odom = left ? t_map_to_left_odom_ : t_map_to_right_odom_;
+
+  Eigen::Vector2d in_odom = matcher_.wood_in_map(id) + t_map2odom;
   in_odom[1] += left ? -0.15 : 0.15;
   auto z = (id == 4) ? -0.155 : -0.06;
 
@@ -73,7 +79,6 @@ double Crane::last_x(bool left) const
 double Crane::last_y(bool left) const
 {
   auto last_cmd = left ? left_last_cmd_ : right_last_cmd_;
-  last_cmd.y += left ? y_left_in_odom_ : y_right_in_odom_;
   return last_cmd.y;
 }
 
@@ -104,8 +109,6 @@ Eigen::Vector3d Crane::odom_at(std::chrono::steady_clock::time_point t, bool lef
   };
   // clang-format on
 
-  gripper_in_odom[1] += left ? y_left_in_odom_ : y_right_in_odom_;
-
   return gripper_in_odom;
 }
 
@@ -130,7 +133,7 @@ void Crane::cmd(Eigen::Vector3d target_in_odom, bool left)
 {
   auto command = left ? left_last_cmd_ : right_last_cmd_;
   command.x = target_in_odom[0];
-  command.y = target_in_odom[1] - (left ? y_left_in_odom_ : y_right_in_odom_);
+  command.y = target_in_odom[1];
   command.z = target_in_odom[2];
   this->cmd(command, left);
 }
@@ -166,11 +169,13 @@ void Crane::align(int id1, int id2, bool left)
 {
   tools::logger()->info("[Crane] align {}", left ? "left" : "right");
 
+  Eigen::Vector2d & t_map2odom = left ? t_map_to_left_odom_ : t_map_to_right_odom_;
+
   auto reach_cnt = 0;
+
   auto is_wood = (id2 == -1);
-  auto name = !is_wood ? auto_crane::LandmarkName::WEIGHT
-                       : ((id1 != 4) ? auto_crane::LandmarkName::TALL_WOOD
-                                     : auto_crane::LandmarkName::SHORT_WOOD);
+  auto name = auto_crane::WEIGHT;
+  if (is_wood) name = (id1 != 4) ? auto_crane::TALL_WOOD : auto_crane::SHORT_WOOD;
 
   auto found = false;
   auto_crane::Landmark target;
@@ -192,7 +197,7 @@ void Crane::align(int id1, int id2, bool left)
     Eigen::Vector2d t_gripper2odom = gripper_in_odom.head<2>();
 
     auto landmarks = solver_.solve(detections, t_gripper2odom, left);
-    matcher_.match(landmarks, -t_map2odom_);
+    matcher_.match(landmarks, -t_map2odom);
     solver_.update_wood(landmarks, t_gripper2odom, left);
 
     for (const auto & l : landmarks) {
@@ -217,7 +222,7 @@ void Crane::align(int id1, int id2, bool left)
     if (reach_cnt > REACH_CNT) break;
   }
 
-  // if (!is_wood) t_map2odom_ = target.in_odom - target.in_map;
+  if (!is_wood) t_map2odom = target.in_odom - target.in_map;
 }
 
 void Crane::grip(bool grip, bool left)

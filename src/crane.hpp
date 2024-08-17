@@ -26,9 +26,8 @@ private:
   auto_crane::Solver solver_;
   auto_crane::Matcher matcher_;
 
-  double y_left_in_odom_;
-  double y_right_in_odom_;
-  Eigen::Vector2d t_map2odom_{0.0, 0.0};
+  Eigen::Vector2d t_map_to_left_odom_;
+  Eigen::Vector2d t_map_to_right_odom_;
 
   io::Command left_last_cmd_{0.0, 0.0, 0.0, false, false};
   io::Command right_last_cmd_{0.0, 0.0, 0.0, false, false};

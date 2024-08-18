@@ -24,8 +24,8 @@ int main(int argc, char * argv[])
 
   crane.wait_to_start();
 
-  crane.right_go_to_map(wt10[1], GET_Z, false);
-  crane.left_go_to_map(wt2[0], wt2[1], GET_Z, false);
+  crane.right_go_to_map(wt10[1], GET_Z);
+  crane.left_go_to_map(wt2[0], wt2[1], GET_Z);
 
   bool got2 = crane.try_get(2, true);
   bool got10 = crane.try_get(10, false);

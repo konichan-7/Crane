@@ -20,8 +20,8 @@ public:
 
   void wait_to_start();
 
-  void right_go_to_map(double y, double z, bool wait);
-  void left_go_to_map(double x, double y, double z, bool wait);
+  void right_go_to_map(double y, double z);
+  void left_go_to_map(double x, double y, double z);
 
   bool try_get(int id, bool left);
   void put(int id, bool left);
@@ -55,9 +55,10 @@ private:
   Eigen::Vector3d odom_at(std::chrono::steady_clock::time_point t, bool left);
 
   void cmd(io::Command command, bool left);
-  void cmd(Eigen::Vector3d target_in_odom, bool left);
 
+  void go_no_wait(Eigen::Vector3d target_in_odom, bool left);
   void go(Eigen::Vector3d target_in_odom, bool left);
+
   bool find_white(int id, bool left);
   void align(auto_crane::LandmarkName name, int id2, bool left);
   void grip(bool grip, bool left);

@@ -40,29 +40,21 @@ void Crane::wait_to_start()
   while (!left_cboard_.start) std::this_thread::sleep_for(1ms);
 }
 
-void Crane::right_go_to_map(double y, double z, bool wait)
+void Crane::right_go_to_map(double y, double z)
 {
   auto right_cmd = right_last_cmd_;
   right_cmd.y = y + t_map_to_right_odom_[1];
   right_cmd.z = z;
-
-  if (wait)
-    this->go({this->last_x(), right_cmd.y, right_cmd.z}, false);
-  else
-    this->cmd(right_cmd, false);
+  this->cmd(right_cmd, false);
 }
 
-void Crane::left_go_to_map(double x, double y, double z, bool wait)
+void Crane::left_go_to_map(double x, double y, double z)
 {
   auto left_cmd = left_last_cmd_;
   left_cmd.x = x + t_map_to_left_odom_[0];
   left_cmd.y = y + t_map_to_left_odom_[1];
   left_cmd.z = z;
-
-  if (wait)
-    this->go({left_cmd.x, left_cmd.y, left_cmd.z}, true);
-  else
-    this->cmd(left_cmd, true);
+  this->cmd(left_cmd, true);
 }
 
 bool Crane::try_get(int id, bool left)
@@ -71,12 +63,7 @@ bool Crane::try_get(int id, bool left)
 
   this->align(auto_crane::WEIGHT, id, left);
   this->grip(true, left);
-
-  // TODO
-  // if (left)
-  //   this->left_go_to_map(this->last_x(), this->last_y(left), HOLD_Z, false);
-  // else
-  //   this->right_go_to_map(this->last_y(left), HOLD_Z, false);
+  this->go_no_wait({this->last_x(), this->last_y(left), HOLD_Z}, left);
 
   return true;
 }
@@ -145,7 +132,7 @@ void Crane::cmd(io::Command command, bool left)
   }
 }
 
-void Crane::cmd(Eigen::Vector3d target_in_odom, bool left)
+void Crane::go_no_wait(Eigen::Vector3d target_in_odom, bool left)
 {
   auto left_cmd = left_last_cmd_;
 
@@ -179,7 +166,7 @@ void Crane::go(Eigen::Vector3d target_in_odom, bool left)
 
     Eigen::Vector3d gripper_in_odom = this->odom_at(t, left);
 
-    this->cmd(target_in_odom, left);
+    this->go_no_wait(target_in_odom, left);
     if ((gripper_in_odom - target_in_odom).norm() < EPS)
       reach_cnt++;
     else
@@ -276,7 +263,7 @@ void Crane::align(auto_crane::LandmarkName name, int id, bool left)
       target_in_odom[1] += left ? y_weight_offset_left_ : y_weight_offset_right_;
     }
 
-    this->cmd(target_in_odom, left);
+    this->go_no_wait(target_in_odom, left);
     if ((cam_in_odom - target_in_odom).norm() < EPS)
       reach_cnt++;
     else

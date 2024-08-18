@@ -18,7 +18,7 @@ Crane::Crane(const std::string & config_path)
   right_cboard_("can0", false),
   left_cam_("video0", config_path),
   right_cam_("video2", config_path),
-  yolo_("assets/openvino_model_v6/best.xml", classes.size(), classes, "AUTO"),
+  yolo_("assets/int8/quantized_model.xml", classes.size(), classes, "AUTO"),
   solver_(config_path),
   matcher_(config_path)
 {
@@ -180,7 +180,7 @@ void Crane::go(Eigen::Vector3d target_in_odom, bool left)
     tools::draw_text(
       img,
       fmt::format(
-        "({.:3f}, {.:3f}, {.:3f}) -> ({.:3f}, {.:3f}, {.:3f})",
+        "({:.3f}, {:.3f}, {:.3f}) -> ({:.3f}, {:.3f}, {:.3f})",
         gripper_in_odom[0],
         gripper_in_odom[1],
         gripper_in_odom[2],
@@ -259,10 +259,6 @@ void Crane::align(auto_crane::LandmarkName name, int id, bool left)
     yolo_.save_img(img, detections);
     auto_crane::draw_detections(img, detections, classes);
 
-    cv::resize(img, img, {}, 0.5, 0.5);
-    cv::imshow("img", img);
-    cv::waitKey(1);
-
     Eigen::Vector3d cam_in_odom = this->odom_at(t, left);
     Eigen::Vector2d t_cam2odom = cam_in_odom.head<2>();
 
@@ -294,6 +290,26 @@ void Crane::align(auto_crane::LandmarkName name, int id, bool left)
       reach_cnt = 0;
 
     if (reach_cnt > REACH_CNT) break;
+
+    // clang-format off
+    tools::draw_text(
+      img,
+      fmt::format(
+        "({:.3f}, {:.3f}, {:.3f}) -> ({:.3f}, {:.3f}, {:.3f})",
+        cam_in_odom[0],
+        cam_in_odom[1],
+        cam_in_odom[2],
+        target_in_odom[0],
+        target_in_odom[1],
+        target_in_odom[2]
+      ),
+      {100, 100}
+    );
+    // clang-format on
+
+    cv::resize(img, img, {}, 0.5, 0.5);
+    cv::imshow("img", img);
+    cv::waitKey(1);
   }
 
   if (!is_wood) t_map2odom = target.in_odom - target.in_map;

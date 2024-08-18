@@ -11,7 +11,7 @@
 constexpr double GET_Z = -0.26;
 constexpr double HOLD_Z = -0.005;
 constexpr double PUT_H_Z = -0.06;
-constexpr double PUT_L_Z = -0.16;
+constexpr double PUT_L_Z = -0.155;
 
 class Crane
 {

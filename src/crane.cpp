@@ -8,6 +8,7 @@
 #include "tools/logger.hpp"
 
 constexpr int REACH_CNT = 10;
+constexpr int FOUND_CNT = 3;
 constexpr double EPS = 0.01;
 
 const std::vector<std::string> classes = {"weights", "white", "wood"};
@@ -63,7 +64,11 @@ void Crane::left_go_to_map(double x, double y, double z)
 
 bool Crane::try_get(int id, bool left)
 {
-  if (this->find_white(id, left)) return false;
+  if (this->find_white(id, left)) {
+    tools::logger()->info("[Crane] try_get {} not found", id);
+    return false;
+  }
+  tools::logger()->info("[Crane] try_get {} found", id);
 
   this->align(auto_crane::WEIGHT, id, left);
   this->grip(true, left);
@@ -181,6 +186,9 @@ bool Crane::find_white(int id, bool left)
 {
   tools::logger()->info("[Crane] find_white {} {}", id, left ? "left" : "right");
 
+  auto found_white_cnt = 0;
+  auto found_weight_cnt = 0;
+
   while (true) {
     cv::Mat img;
     std::chrono::steady_clock::time_point t;
@@ -193,21 +201,19 @@ bool Crane::find_white(int id, bool left)
     auto landmarks = solver_.solve(detections, t_cam2odom, left);
     matcher_.match(landmarks, -(left ? t_map_to_left_odom_ : t_map_to_right_odom_));
 
-    auto found_white = false;
-    auto found_weight = false;
-
     for (const auto & l : landmarks) {
       if (l.name == auto_crane::WHITE && l.id == id) {
-        found_white = true;
+        found_white_cnt++;
         break;
       }
       if (l.name == auto_crane::WEIGHT && l.id == id) {
-        found_weight = true;
+        found_weight_cnt++;
         break;
       }
     }
 
-    if (found_white || found_weight) return found_white;
+    if (found_white_cnt > FOUND_CNT) return true;
+    if (found_weight_cnt > FOUND_CNT) return false;
 
     auto_crane::draw_detections(img, detections, classes);
     cv::resize(img, img, {}, 0.5, 0.5);

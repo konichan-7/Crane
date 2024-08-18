@@ -17,12 +17,12 @@ tall_wood_height: 0.2
 short_wood_height: 0.1
 
 x_left_gripper_offset: -0.02
-x_right_gripper_offset: 0.02
+x_right_gripper_offset: 0.01
 
 y_left_get_offset: 0.02
 y_right_get_offset: -0.05
 
-y_left_put_offset: 0.04
-y_right_put_offset: -0.05
+y_left_put_offset: 0.03
+y_right_put_offset: -0.055
 
 max_match_error: 0.2

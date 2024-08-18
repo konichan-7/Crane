@@ -239,15 +239,15 @@ void Crane::align(auto_crane::LandmarkName name, int id, bool left)
     cv::imshow("img", img);
     cv::waitKey(1);
 
-    Eigen::Vector3d gripper_in_odom = this->odom_at(t, left);
-    Eigen::Vector2d t_gripper2odom = gripper_in_odom.head<2>();
+    Eigen::Vector3d cam_in_odom = this->odom_at(t, left);
+    Eigen::Vector2d t_cam2odom = cam_in_odom.head<2>();
 
-    auto landmarks = solver_.solve(detections, t_gripper2odom, left);
+    auto landmarks = solver_.solve(detections, t_cam2odom, left);
     matcher_.match(landmarks, -t_map2odom);
-    solver_.update_wood(landmarks, t_gripper2odom, left);
+    solver_.update_wood(landmarks, t_cam2odom, left);
 
     for (const auto & l : landmarks) {
-      if (l.name != name && l.id != id) continue;
+      if (l.name != name || l.id != id) continue;
       found = true;
       target = l;
       break;
@@ -259,7 +259,7 @@ void Crane::align(auto_crane::LandmarkName name, int id, bool left)
     if (is_wood) target_in_odom[1] += left ? -0.04 : 0.04;
 
     this->cmd(target_in_odom, left);
-    if ((gripper_in_odom - target_in_odom).norm() < EPS)
+    if ((cam_in_odom - target_in_odom).norm() < EPS)
       reach_cnt++;
     else
       reach_cnt = 0;

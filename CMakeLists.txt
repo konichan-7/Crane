@@ -34,5 +34,5 @@ target_link_libraries(solver_test ${OpenCV_LIBS} fmt::fmt io tools auto_crane)
 add_executable(matcher_test examples/matcher_test.cpp)
 target_link_libraries(matcher_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)
 
-add_executable(crane src/crane.cpp)
-target_link_libraries(crane ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)
+add_executable(main src/crane.cpp src/main.cpp)
+target_link_libraries(main ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_crane tools io)

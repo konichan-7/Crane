@@ -10,10 +10,6 @@
 constexpr int REACH_CNT = 10;
 constexpr double EPS = 0.01;
 
-const std::string keys =
-  "{help h usage ? |                        | 输出命令行参数说明 }"
-  "{@config-path   | configs/usbcamera.yaml | 位置参数，yaml配置文件路径 }";
-
 const std::vector<std::string> classes = {"weights", "white", "wood"};
 
 Crane::Crane(const std::string & config_path)
@@ -32,61 +28,65 @@ Crane::Crane(const std::string & config_path)
   t_map_to_right_odom_ = {0.0, -y_right_odom_in_map};
 }
 
-void Crane::get(int id1, int id2, bool left)
+void Crane::right_go_to_map(double y, double z)
 {
-  Eigen::Vector2d & t_map2odom = left ? t_map_to_left_odom_ : t_map_to_right_odom_;
+  auto right_cmd = right_last_cmd_;
+  right_cmd.y = y + t_map_to_right_odom_[1];
+  right_cmd.z = z;
+  this->cmd(right_cmd, false);
+}
 
-  Eigen::Vector2d in_map = (matcher_.weight_in_map(id2) + matcher_.weight_in_map(id1)) * 0.5;
-  Eigen::Vector2d in_odom = in_map + t_map2odom;
-  in_odom[1] += left ? -0.15 : 0.15;
+void Crane::left_go_to_map(double x, double y, double z)
+{
+  auto left_cmd = left_last_cmd_;
+  left_cmd.x = x + t_map_to_left_odom_[0];
+  left_cmd.y = y + t_map_to_left_odom_[1];
+  left_cmd.z = z;
+  this->cmd(left_cmd, true);
+}
 
-  this->go({in_odom[0], in_odom[1], this->last_z(left)}, left);
-  this->align(id1, id2, left);
+bool Crane::try_get(int id, bool left)
+{
+  if (this->find_white(id, left)) return false;
 
-  this->go({this->last_x(left), this->last_y(left), -0.26}, left);
+  this->align(auto_crane::WEIGHT, id, left);
   this->grip(true, left);
-  this->go({this->last_x(left), this->last_y(left), -0.005}, left);
+
+  if (left)
+    this->left_go_to_map(this->last_x(), this->last_y(left), HOLD_Z);
+  else
+    this->right_go_to_map(this->last_y(left), HOLD_Z);
+
+  return true;
 }
 
 void Crane::put(int id, bool left)
 {
-  Eigen::Vector2d & t_map2odom = left ? t_map_to_left_odom_ : t_map_to_right_odom_;
+  // Eigen::Vector2d & t_map2odom = left ? t_map_to_left_odom_ : t_map_to_right_odom_;
 
-  Eigen::Vector2d in_odom = matcher_.wood_in_map(id) + t_map2odom;
-  in_odom[1] += left ? -0.15 : 0.15;
-  auto z = (id == 4) ? -0.155 : -0.06;
+  // Eigen::Vector2d in_odom = matcher_.wood_in_map(id) + t_map2odom;
+  // in_odom[1] += left ? -0.15 : 0.15;
+  // auto z = (id == 4) ? -0.155 : -0.06;
 
-  this->go({in_odom[0], in_odom[1], this->last_z(left)}, left);
-  this->align(id, -1, left);
+  // this->go({in_odom[0], in_odom[1], this->last_z(left)}, left);
+  // this->align(id, -1, left);
 
-  auto & last_cmd = left ? left_last_cmd_ : right_last_cmd_;
-  last_cmd.slow = true;
-  this->go(
-    {this->last_x(left), this->last_y(left) + (left ? 0.055 : -0.055), this->last_z(left)}, left);
-  last_cmd.slow = false;
+  // auto & last_cmd = left ? left_last_cmd_ : right_last_cmd_;
+  // last_cmd.slow = true;
+  // this->go(
+  //   {this->last_x(left), this->last_y(left) + (left ? 0.055 : -0.055), this->last_z(left)}, left);
+  // last_cmd.slow = false;
 
-  this->go({this->last_x(left), this->last_y(left), z}, left);
-  this->grip(false, left);
-  this->go({this->last_x(left), this->last_y(left), -0.005}, left);
+  // this->go({this->last_x(left), this->last_y(left), z}, left);
+  // this->grip(false, left);
+  // this->go({this->last_x(left), this->last_y(left), -0.005}, left);
 }
 
-double Crane::last_x(bool left) const
-{
-  auto last_cmd = left ? left_last_cmd_ : right_last_cmd_;
-  return last_cmd.x;
-}
+double Crane::last_x() const { return left_last_cmd_.x; }
 
-double Crane::last_y(bool left) const
-{
-  auto last_cmd = left ? left_last_cmd_ : right_last_cmd_;
-  return last_cmd.y;
-}
+double Crane::last_y(bool left) const { return left ? left_last_cmd_.y : right_last_cmd_.y; }
 
-double Crane::last_z(bool left) const
-{
-  auto last_cmd = left ? left_last_cmd_ : right_last_cmd_;
-  return last_cmd.z;
-}
+double Crane::last_z(bool left) const { return left ? left_last_cmd_.z : right_last_cmd_.z; }
 
 void Crane::read(cv::Mat & img, std::chrono::steady_clock::time_point & t, bool left)
 {
@@ -117,65 +117,75 @@ void Crane::cmd(io::Command command, bool left)
   if (left) {
     left_cboard_.send(command);
     left_last_cmd_ = command;
-    return;
   }
-
-  auto left_cmd = left_last_cmd_;
-  left_cmd.x = command.x;
-  left_cboard_.send(left_cmd);
-  left_last_cmd_ = left_cmd;
-
-  right_cboard_.send(command);
-  right_last_cmd_ = command;
+  else {
+    right_cboard_.send(command);
+    right_last_cmd_ = command;
+  }
 }
 
 void Crane::cmd(Eigen::Vector3d target_in_odom, bool left)
 {
-  auto command = left ? left_last_cmd_ : right_last_cmd_;
-  command.x = target_in_odom[0];
-  command.y = target_in_odom[1];
-  command.z = target_in_odom[2];
-  this->cmd(command, left);
+  auto left_cmd = left_last_cmd_;
+
+  if (left) {
+    left_cmd.y = target_in_odom[1];
+    left_cmd.z = target_in_odom[2];
+  }
+  else {
+    auto right_cmd = right_last_cmd_;
+    right_cmd.y = target_in_odom[1];
+    right_cmd.z = target_in_odom[2];
+    this->cmd(right_cmd, false);
+  }
+
+  left_cmd.x = target_in_odom[0];
+  this->cmd(left_cmd, true);
 }
 
-void Crane::go(Eigen::Vector3d target_in_odom, bool left)
+bool Crane::find_white(int id, bool left)
 {
-  tools::logger()->info("[Crane] go {}", left ? "left" : "right");
-
-  int reach_cnt = 0;
-
   while (true) {
     cv::Mat img;
     std::chrono::steady_clock::time_point t;
     this->read(img, t, left);
 
+    Eigen::Vector3d cam_in_odom = this->odom_at(t, left);
+    Eigen::Vector2d t_cam2odom = cam_in_odom.head<2>();
+
+    auto detections = yolo_.infer(img);
+    auto landmarks = solver_.solve(detections, t_cam2odom, left);
+    matcher_.match(landmarks, -(left ? t_map_to_left_odom_ : t_map_to_right_odom_));
+
+    auto found_white = false;
+    auto found_weight = false;
+
+    for (const auto & l : landmarks) {
+      if (l.name == auto_crane::WHITE && l.id == id) {
+        found_white = true;
+        break;
+      }
+      if (l.name == auto_crane::WEIGHT && l.id == id) {
+        found_weight = true;
+        break;
+      }
+    }
+
+    if (found_white || found_weight) return found_white;
+
+    auto_crane::draw_detections(img, detections, classes);
     cv::resize(img, img, {}, 0.5, 0.5);
     cv::imshow("img", img);
     cv::waitKey(1);
-
-    Eigen::Vector3d gripper_in_odom = this->odom_at(t, left);
-
-    this->cmd(target_in_odom, left);
-    if ((gripper_in_odom - target_in_odom).norm() < EPS)
-      reach_cnt++;
-    else
-      reach_cnt = 0;
-
-    if (reach_cnt > REACH_CNT) break;
   }
 }
 
-void Crane::align(int id1, int id2, bool left)
+void Crane::align(auto_crane::LandmarkName name, int id, bool left)
 {
-  tools::logger()->info("[Crane] align {}", left ? "left" : "right");
-
+  auto is_wood = (name == auto_crane::TALL_WOOD || name == auto_crane::SHORT_WOOD);
   Eigen::Vector2d & t_map2odom = left ? t_map_to_left_odom_ : t_map_to_right_odom_;
 
   auto reach_cnt = 0;
-
-  auto is_wood = (id2 == -1);
-  auto name = auto_crane::WEIGHT;
-  if (is_wood) name = (id1 != 4) ? auto_crane::TALL_WOOD : auto_crane::SHORT_WOOD;
 
   auto found = false;
   auto_crane::Landmark target;
@@ -201,8 +211,7 @@ void Crane::align(int id1, int id2, bool left)
     solver_.update_wood(landmarks, t_gripper2odom, left);
 
     for (const auto & l : landmarks) {
-      if (l.name != name) continue;
-      if (l.id != id1 && l.id != id2) continue;
+      if (l.name != name && l.id != id) continue;
       found = true;
       target = l;
       break;
@@ -222,7 +231,7 @@ void Crane::align(int id1, int id2, bool left)
     if (reach_cnt > REACH_CNT) break;
   }
 
-  if (!is_wood) t_map2odom = target.in_odom - target.in_map;
+  // if (!is_wood) t_map2odom = target.in_odom - target.in_map;
 }
 
 void Crane::grip(bool grip, bool left)
@@ -243,31 +252,4 @@ void Crane::grip(bool grip, bool left)
 
     this->cmd(command, left);
   }
-}
-
-int main(int argc, char * argv[])
-{
-  cv::CommandLineParser cli(argc, argv, keys);
-  if (cli.has("help")) {
-    cli.printMessage();
-    return 0;
-  }
-
-  auto config_path = cli.get<std::string>(0);
-  Crane crane(config_path);
-
-  crane.get(2, 3, true);
-  crane.get(10, 11, false);
-  crane.put(0, true);
-  crane.put(3, false);
-
-  // crane.get(0, 1, true);
-  // crane.put(4, true);
-
-  // crane.get(4, 5, true);
-  // crane.get(8, 9, false);
-  // crane.put(1, true);
-  // crane.put(2, false);
-
-  return 0;
 }

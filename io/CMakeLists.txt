@@ -8,7 +8,6 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 add_library(io OBJECT   
     usbcamera/usbcamera.cpp
     cboard/cboard.cpp
-    crane/crane.cpp
 )
 
 target_link_libraries(io yaml-cpp ${OpenCV_LIBS})

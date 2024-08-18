@@ -18,8 +18,8 @@ class Crane
 public:
   Crane(const std::string & config_path);
 
-  void right_go_to_map(double y, double z);
-  void left_go_to_map(double x, double y, double z);
+  void right_go_to_map(double y, double z, bool wait);
+  void left_go_to_map(double x, double y, double z, bool wait);
 
   bool try_get(int id, bool left);
   void put(int id, bool left);
@@ -50,6 +50,7 @@ private:
   void cmd(io::Command command, bool left);
   void cmd(Eigen::Vector3d target_in_odom, bool left);
 
+  void go(Eigen::Vector3d target_in_odom, bool left);
   bool find_white(int id, bool left);
   void align(auto_crane::LandmarkName name, int id2, bool left);
   void grip(bool grip, bool left);

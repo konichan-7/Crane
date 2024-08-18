@@ -7,8 +7,8 @@ usb_exposure: 500 # 1-80000
 usb_gamma_: 160
 usb_gain_: 10 # 0-96
 
-y_left_odom_in_map: 0.456
-y_right_odom_in_map: -0.568
+y_left_odom_in_map: 0.55
+y_right_odom_in_map: -0.65
 
 z_cam2map: 0.42
 white_height: 0
@@ -22,18 +22,3 @@ x_gripper_in_cam_right: 0.02
 y_gripper_in_cam_right: 0.05
 
 max_match_error: 0.2
-
-judge_distance: 0.5
-
-t_odo2map_x0: 0.001
-t_odo2map_y0: 0.001
-state_cov0: 0.025
-process_noise: 0.01
-measurement_noise: 0.05
-
-safe_height: -0.1
-crawl_height: -0.234
-short_place_height: 0.25
-tall_place_height: 0.3
-
-#测试时： 短木桩高0.125,长木桩高0.210

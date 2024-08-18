@@ -28,21 +28,29 @@ Crane::Crane(const std::string & config_path)
   t_map_to_right_odom_ = {0.0, -y_right_odom_in_map};
 }
 
-void Crane::right_go_to_map(double y, double z)
+void Crane::right_go_to_map(double y, double z, bool wait)
 {
   auto right_cmd = right_last_cmd_;
   right_cmd.y = y + t_map_to_right_odom_[1];
   right_cmd.z = z;
-  this->cmd(right_cmd, false);
+
+  if (wait)
+    this->go({this->last_x(), right_cmd.y, right_cmd.z}, false);
+  else
+    this->cmd(right_cmd, false);
 }
 
-void Crane::left_go_to_map(double x, double y, double z)
+void Crane::left_go_to_map(double x, double y, double z, bool wait)
 {
   auto left_cmd = left_last_cmd_;
   left_cmd.x = x + t_map_to_left_odom_[0];
   left_cmd.y = y + t_map_to_left_odom_[1];
   left_cmd.z = z;
-  this->cmd(left_cmd, true);
+
+  if (wait)
+    this->go({left_cmd.x, left_cmd.y, left_cmd.z}, true);
+  else
+    this->cmd(left_cmd, true);
 }
 
 bool Crane::try_get(int id, bool left)
@@ -53,9 +61,9 @@ bool Crane::try_get(int id, bool left)
   this->grip(true, left);
 
   if (left)
-    this->left_go_to_map(this->last_x(), this->last_y(left), HOLD_Z);
+    this->left_go_to_map(this->last_x(), this->last_y(left), HOLD_Z, false);
   else
-    this->right_go_to_map(this->last_y(left), HOLD_Z);
+    this->right_go_to_map(this->last_y(left), HOLD_Z, false);
 
   return true;
 }
@@ -141,6 +149,31 @@ void Crane::cmd(Eigen::Vector3d target_in_odom, bool left)
 
   left_cmd.x = target_in_odom[0];
   this->cmd(left_cmd, true);
+}
+
+void Crane::go(Eigen::Vector3d target_in_odom, bool left)
+{
+  int reach_cnt = 0;
+
+  while (true) {
+    cv::Mat img;
+    std::chrono::steady_clock::time_point t;
+    this->read(img, t, left);
+
+    cv::resize(img, img, {}, 0.5, 0.5);
+    cv::imshow("img", img);
+    cv::waitKey(1);
+
+    Eigen::Vector3d gripper_in_odom = this->odom_at(t, left);
+
+    this->cmd(target_in_odom, left);
+    if ((gripper_in_odom - target_in_odom).norm() < EPS)
+      reach_cnt++;
+    else
+      reach_cnt = 0;
+
+    if (reach_cnt > REACH_CNT) break;
+  }
 }
 
 bool Crane::find_white(int id, bool left)

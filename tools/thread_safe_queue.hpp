@@ -22,9 +22,8 @@ public:
   {
     std::unique_lock<std::mutex> lock(mutex_);
 
-    if (queue_.size() >= max_size_) {
-      full_handler_();
-      return;
+    while (queue_.size() >= max_size_) {
+      queue_.pop();
     }
 
     queue_.push(value);

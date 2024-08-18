@@ -166,10 +166,6 @@ void Crane::go(Eigen::Vector3d target_in_odom, bool left)
     std::chrono::steady_clock::time_point t;
     this->read(img, t, left);
 
-    cv::resize(img, img, {}, 0.5, 0.5);
-    cv::imshow("img", img);
-    cv::waitKey(1);
-
     Eigen::Vector3d gripper_in_odom = this->odom_at(t, left);
 
     this->go_no_wait(target_in_odom, left);
@@ -179,6 +175,26 @@ void Crane::go(Eigen::Vector3d target_in_odom, bool left)
       reach_cnt = 0;
 
     if (reach_cnt > REACH_CNT) break;
+
+    // clang-format off
+    tools::draw_text(
+      img,
+      fmt::format(
+        "({.:3f}, {.:3f}, {.:3f}) -> ({.:3f}, {.:3f}, {.:3f})",
+        gripper_in_odom[0],
+        gripper_in_odom[1],
+        gripper_in_odom[2],
+        target_in_odom[0],
+        target_in_odom[1],
+        target_in_odom[2]
+      ),
+      {100, 100}
+    );
+    // clang-format on
+
+    cv::resize(img, img, {}, 0.5, 0.5);
+    cv::imshow("img", img);
+    cv::waitKey(1);
   }
 }
 

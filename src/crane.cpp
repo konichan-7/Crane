@@ -28,16 +28,20 @@ Crane::Crane(const std::string & config_path)
   t_map_to_left_odom_ = {0.0, -y_left_odom_in_map};
   t_map_to_right_odom_ = {0.0, -y_right_odom_in_map};
 
-  x_weight_offset_left_ = yaml["x_weight_offset_left"].as<double>();
-  y_weight_offset_left_ = yaml["y_weight_offset_left"].as<double>();
-  x_weight_offset_right_ = yaml["x_weight_offset_right"].as<double>();
-  y_weight_offset_right_ = yaml["y_weight_offset_right"].as<double>();
+  x_left_gripper_offset_ = yaml["x_left_gripper_offset"].as<double>();
+  x_right_gripper_offset_ = yaml["x_right_gripper_offset"].as<double>();
+
+  y_left_get_offset_ = yaml["y_left_get_offset"].as<double>();
+  y_right_get_offset_ = yaml["y_right_get_offset"].as<double>();
+
+  y_left_put_offset_ = yaml["y_left_put_offset"].as<double>();
+  y_right_put_offset_ = yaml["y_right_put_offset"].as<double>();
 }
 
 void Crane::wait_to_start()
 {
   tools::logger()->info("[Crane] waiting to start...");
-  while (!left_cboard_.start) std::this_thread::sleep_for(1ms);
+  while (!left_cboard_.start) std::this_thread::sleep_for(10ms);
 }
 
 void Crane::right_go_to_map(double y, double z)
@@ -70,24 +74,19 @@ bool Crane::try_get(int id, bool left)
 
 void Crane::put(int id, bool left)
 {
-  // Eigen::Vector2d & t_map2odom = left ? t_map_to_left_odom_ : t_map_to_right_odom_;
+  this->align((id != 4) ? auto_crane::TALL_WOOD : auto_crane::SHORT_WOOD, id, left);
 
-  // Eigen::Vector2d in_odom = matcher_.wood_in_map(id) + t_map2odom;
-  // in_odom[1] += left ? -0.15 : 0.15;
-  // auto z = (id == 4) ? -0.155 : -0.06;
+  auto & last_cmd = left ? left_last_cmd_ : right_last_cmd_;
+  last_cmd.slow = true;
+  this->go(
+    {this->last_x(), this->last_y(left) + (left ? y_left_put_offset_ : y_right_put_offset_),
+     HOLD_Z},
+    left);
+  last_cmd.slow = false;
 
-  // this->go({in_odom[0], in_odom[1], this->last_z(left)}, left);
-  // this->align(id, -1, left);
-
-  // auto & last_cmd = left ? left_last_cmd_ : right_last_cmd_;
-  // last_cmd.slow = true;
-  // this->go(
-  //   {this->last_x(left), this->last_y(left) + (left ? 0.055 : -0.055), this->last_z(left)}, left);
-  // last_cmd.slow = false;
-
-  // this->go({this->last_x(left), this->last_y(left), z}, left);
-  // this->grip(false, left);
-  // this->go({this->last_x(left), this->last_y(left), -0.005}, left);
+  this->go({this->last_x(), this->last_y(left), (id == 4) ? PUT_L_Z : PUT_H_Z}, left);
+  this->grip(false, left);
+  this->go({this->last_x(), this->last_y(left), HOLD_Z}, left);
 }
 
 double Crane::last_x() const { return left_last_cmd_.x; }
@@ -153,6 +152,8 @@ void Crane::go_no_wait(Eigen::Vector3d target_in_odom, bool left)
 
 void Crane::go(Eigen::Vector3d target_in_odom, bool left)
 {
+  tools::logger()->info("[Crane] go {}", left ? "left" : "right");
+
   int reach_cnt = 0;
 
   while (true) {
@@ -178,6 +179,8 @@ void Crane::go(Eigen::Vector3d target_in_odom, bool left)
 
 bool Crane::find_white(int id, bool left)
 {
+  tools::logger()->info("[Crane] find_white {} {}", id, left ? "left" : "right");
+
   while (true) {
     cv::Mat img;
     std::chrono::steady_clock::time_point t;
@@ -256,11 +259,10 @@ void Crane::align(auto_crane::LandmarkName name, int id, bool left)
 
     Eigen::Vector3d target_in_odom{target.in_odom[0], target.in_odom[1], this->last_z(left)};
 
-    if (is_wood) {
-    }
-    else {
-      target_in_odom[0] += left ? x_weight_offset_left_ : x_weight_offset_right_;
-      target_in_odom[1] += left ? y_weight_offset_left_ : y_weight_offset_right_;
+    target_in_odom[0] += left ? x_left_gripper_offset_ : x_right_gripper_offset_;
+
+    if (!is_wood) {
+      target_in_odom[1] += left ? y_left_get_offset_ : y_right_get_offset_;
     }
 
     this->go_no_wait(target_in_odom, left);
@@ -272,7 +274,7 @@ void Crane::align(auto_crane::LandmarkName name, int id, bool left)
     if (reach_cnt > REACH_CNT) break;
   }
 
-  // if (!is_wood) t_map2odom = target.in_odom - target.in_map;
+  if (!is_wood) t_map2odom = target.in_odom - target.in_map;
 }
 
 void Crane::grip(bool grip, bool left)

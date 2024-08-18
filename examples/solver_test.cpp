@@ -11,6 +11,7 @@
 #include "tasks/auto_crane/yolov8.hpp"
 #include "tools/exiter.hpp"
 #include "tools/logger.hpp"
+#include "tools/math_tools.hpp"
 #include "tools/plotter.hpp"
 
 const std::string keys =
@@ -38,8 +39,11 @@ int main(int argc, char * argv[])
   tools::Exiter exiter;
   tools::Plotter plotter;
 
-  auto_crane::YOLOV8 yolo("assets/openvino_model_v6/best.xml", classes.size(), classes, "AUTO");
+  // auto_crane::YOLOV8 yolo("assets/openvino_model_v6/best.xml", classes.size(), classes, "AUTO");
+  auto_crane::YOLOV8 yolo("assets/int8/quantized_model.xml", classes.size(), classes, "AUTO");
   auto_crane::Solver solver(config_path);
+
+  auto last_t = std::chrono::steady_clock::now();
 
   while (!exiter.exit()) {
     cv::Mat img;
@@ -95,6 +99,10 @@ int main(int argc, char * argv[])
     cv::resize(img, img, {}, 0.5, 0.5);
     cv::imshow("press q to quit", img);
     if (cv::waitKey(1) == 'q') break;
+
+    auto cost = tools::delta_time(t, last_t);
+    last_t = t;
+    tools::logger()->debug("fps: {:.1f}", 1 / cost);
   }
 
   return 0;

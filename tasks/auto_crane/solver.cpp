@@ -13,20 +13,10 @@ Solver::Solver(const std::string & config_path)
   weight_height_ = yaml["weight_height"].as<double>();
   tall_wood_height_ = yaml["tall_wood_height"].as<double>();
   short_wood_height_ = yaml["short_wood_height"].as<double>();
-
-  auto x_gripper_in_cam_left = yaml["x_gripper_in_cam_left"].as<double>();
-  auto y_gripper_in_cam_left = yaml["y_gripper_in_cam_left"].as<double>();
-  Eigen::Vector2d t_gripper2cam_left{x_gripper_in_cam_left, y_gripper_in_cam_left};
-  t_cam2gripper_left_ = -R_cam2gripper_left_ * t_gripper2cam_left;
-
-  auto x_gripper_in_cam_right = yaml["x_gripper_in_cam_right"].as<double>();
-  auto y_gripper_in_cam_right = yaml["y_gripper_in_cam_right"].as<double>();
-  Eigen::Vector2d t_gripper2cam_right{x_gripper_in_cam_right, y_gripper_in_cam_right};
-  t_cam2gripper_right_ = -R_cam2gripper_right_ * t_gripper2cam_right;
 }
 
 std::vector<Landmark> Solver::solve(
-  const std::vector<Detection> & detections, Eigen::Vector2d t_gripper2odom, bool left)
+  const std::vector<Detection> & detections, Eigen::Vector2d t_cam2odom, bool left)
 {
   std::vector<Landmark> landmarks;
 
@@ -54,9 +44,8 @@ std::vector<Landmark> Solver::solve(
 
     l.in_cam = {std::tan(angle_x) * z, std::tan(angle_y) * z};
 
-    Eigen::Matrix2d R_cam2gripper = left ? R_cam2gripper_left_ : R_cam2gripper_right_;
-    Eigen::Vector2d t_cam2gripper = left ? t_cam2gripper_left_ : t_cam2gripper_right_;
-    l.in_odom = R_cam2gripper * l.in_cam + t_cam2gripper + t_gripper2odom;
+    Eigen::Matrix2d R_cam2odom = left ? R_cam2odom_left_ : R_cam2odom_right_;
+    l.in_odom = R_cam2odom * l.in_cam + t_cam2odom;
 
     landmarks.push_back(l);
   }
@@ -64,17 +53,15 @@ std::vector<Landmark> Solver::solve(
   return landmarks;
 }
 
-void Solver::update_wood(
-  std::vector<Landmark> & landmarks, Eigen::Vector2d t_gripper2odom, bool left)
+void Solver::update_wood(std::vector<Landmark> & landmarks, Eigen::Vector2d t_cam2odom, bool left)
 {
   for (auto & l : landmarks) {
     if (l.name != LandmarkName::SHORT_WOOD) continue;
 
     l.in_cam = l.in_cam * (z_cam2map_ - short_wood_height_) / (z_cam2map_ - tall_wood_height_);
 
-    Eigen::Matrix2d R_cam2gripper = left ? R_cam2gripper_left_ : R_cam2gripper_right_;
-    Eigen::Vector2d t_cam2gripper = left ? t_cam2gripper_left_ : t_cam2gripper_right_;
-    l.in_odom = R_cam2gripper * l.in_cam + t_cam2gripper + t_gripper2odom;
+    Eigen::Matrix2d R_cam2odom = left ? R_cam2odom_left_ : R_cam2odom_right_;
+    l.in_odom = R_cam2odom * l.in_cam + t_cam2odom;
   }
 }
 

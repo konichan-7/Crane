@@ -60,10 +60,11 @@ bool Crane::try_get(int id, bool left)
   this->align(auto_crane::WEIGHT, id, left);
   this->grip(true, left);
 
-  if (left)
-    this->left_go_to_map(this->last_x(), this->last_y(left), HOLD_Z, false);
-  else
-    this->right_go_to_map(this->last_y(left), HOLD_Z, false);
+  // TODO
+  // if (left)
+  //   this->left_go_to_map(this->last_x(), this->last_y(left), HOLD_Z, false);
+  // else
+  //   this->right_go_to_map(this->last_y(left), HOLD_Z, false);
 
   return true;
 }
@@ -215,6 +216,8 @@ bool Crane::find_white(int id, bool left)
 
 void Crane::align(auto_crane::LandmarkName name, int id, bool left)
 {
+  tools::logger()->info("[Crane] align {}", left ? "left" : "right");
+
   auto is_wood = (name == auto_crane::TALL_WOOD || name == auto_crane::SHORT_WOOD);
   Eigen::Vector2d & t_map2odom = left ? t_map_to_left_odom_ : t_map_to_right_odom_;
 

@@ -27,11 +27,11 @@ int main(int argc, char * argv[])
   crane.right_go_to_map(wt10[1], GET_Z, false);
   crane.left_go_to_map(wt2[0], wt2[1], GET_Z, false);
 
-  // bool got2 = crane.try_get(2, true);
-  // bool got10 = crane.try_get(10, false);
+  bool got2 = crane.try_get(2, true);
+  bool got10 = crane.try_get(10, false);
 
-  // if (!got2) crane.try_get(3, true);
-  // if (!got10) crane.try_get(11, true);
+  if (!got2) crane.try_get(3, true);
+  if (!got10) crane.try_get(11, true);
 
   // Eigen::Vector2d wd0 = map.wood_in_map(0);
   // Eigen::Vector2d wd3 = map.wood_in_map(3);

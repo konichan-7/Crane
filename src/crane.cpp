@@ -22,10 +22,16 @@ Crane::Crane(const std::string & config_path)
   matcher_(config_path)
 {
   auto yaml = YAML::LoadFile(config_path);
+
   auto y_left_odom_in_map = yaml["y_left_odom_in_map"].as<double>();
   auto y_right_odom_in_map = yaml["y_right_odom_in_map"].as<double>();
   t_map_to_left_odom_ = {0.0, -y_left_odom_in_map};
   t_map_to_right_odom_ = {0.0, -y_right_odom_in_map};
+
+  x_weight_offset_left_ = yaml["x_weight_offset_left"].as<double>();
+  y_weight_offset_left_ = yaml["y_weight_offset_left"].as<double>();
+  x_weight_offset_right_ = yaml["x_weight_offset_right"].as<double>();
+  y_weight_offset_right_ = yaml["y_weight_offset_right"].as<double>();
 }
 
 void Crane::right_go_to_map(double y, double z, bool wait)
@@ -256,7 +262,13 @@ void Crane::align(auto_crane::LandmarkName name, int id, bool left)
     if (!found) continue;
 
     Eigen::Vector3d target_in_odom{target.in_odom[0], target.in_odom[1], this->last_z(left)};
-    if (is_wood) target_in_odom[1] += left ? -0.04 : 0.04;
+
+    if (is_wood) {
+    }
+    else {
+      target_in_odom[0] += left ? x_weight_offset_left_ : x_weight_offset_right_;
+      target_in_odom[1] += left ? y_weight_offset_left_ : y_weight_offset_right_;
+    }
 
     this->cmd(target_in_odom, left);
     if ((cam_in_odom - target_in_odom).norm() < EPS)

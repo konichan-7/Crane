@@ -37,6 +37,11 @@ private:
   Eigen::Vector2d t_map_to_left_odom_;
   Eigen::Vector2d t_map_to_right_odom_;
 
+  double x_weight_offset_left_;
+  double y_weight_offset_left_;
+  double x_weight_offset_right_;
+  double y_weight_offset_right_;
+
   io::Command left_last_cmd_{0.0, 0.0, 0.0, false, false};
   io::Command right_last_cmd_{0.0, 0.0, 0.0, false, false};
 

@@ -34,6 +34,12 @@ Crane::Crane(const std::string & config_path)
   y_weight_offset_right_ = yaml["y_weight_offset_right"].as<double>();
 }
 
+void Crane::wait_to_start()
+{
+  tools::logger()->info("[Crane] waiting to start...");
+  while (!left_cboard_.start) std::this_thread::sleep_for(1ms);
+}
+
 void Crane::right_go_to_map(double y, double z, bool wait)
 {
   auto right_cmd = right_last_cmd_;

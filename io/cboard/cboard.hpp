@@ -15,6 +15,8 @@ class CBoard
 public:
   CBoard(const std::string & interface, bool left);
 
+  bool start = false;
+
   Eigen::Vector3d odom_at(std::chrono::steady_clock::time_point t);
 
   void send(Command command) const;

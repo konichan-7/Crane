@@ -22,7 +22,7 @@ int main(int argc, char * argv[])
   Eigen::Vector2d wt2 = map.weight_in_map(2);
   Eigen::Vector2d wt10 = map.weight_in_map(10);
 
-  crane.right_go_to_map(wt10[1], HOLD_Z, true);  // wait to start
+  crane.wait_to_start();
 
   crane.right_go_to_map(wt10[1], GET_Z, false);
   crane.left_go_to_map(wt2[0], wt2[1], GET_Z, false);

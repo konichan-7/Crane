@@ -76,6 +76,7 @@ void CBoard::callback(const can_frame & frame)
   auto z = (int16_t)(frame.data[4] << 8 | frame.data[5]) / 1e3;
 
   y = -y;
+  this->start = (frame.data[6] == 0x01);
 
   queue_.push({{x, y, z}, t});
 }

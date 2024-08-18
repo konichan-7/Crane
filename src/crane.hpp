@@ -18,6 +18,8 @@ class Crane
 public:
   Crane(const std::string & config_path);
 
+  void wait_to_start();
+
   void right_go_to_map(double y, double z, bool wait);
   void left_go_to_map(double x, double y, double z, bool wait);
 

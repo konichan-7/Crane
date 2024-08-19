@@ -20,6 +20,8 @@ public:
 
   void wait_to_start();
 
+  void forward(auto_crane::LandmarkName name, int id, double z, bool left);
+
   void right_go_to_map(double y, double z);
   void left_go_to_map(double x, double y, double z);
 
@@ -64,7 +66,7 @@ private:
   void go(Eigen::Vector3d target_in_odom, bool left);
 
   bool find_white(int id, bool left);
-  void align(auto_crane::LandmarkName name, int id2, bool left);
+  void align(auto_crane::LandmarkName name, int id, bool left);
   void grip(bool grip, bool left);
 };
 

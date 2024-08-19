@@ -45,6 +45,21 @@ void Crane::wait_to_start()
   while (!left_cboard_.start) std::this_thread::sleep_for(10ms);
 }
 
+void Crane::forward(auto_crane::LandmarkName name, int id, double z, bool left)
+{
+  auto is_weight = (name == auto_crane::WEIGHT);
+
+  Eigen::Vector2d m = is_weight ? matcher_.weight_in_map(id) : matcher_.wood_in_map(id);
+  Eigen::Vector2d o = m + (left ? t_map_to_left_odom_ : t_map_to_right_odom_);
+
+  auto command = left ? left_last_cmd_ : right_last_cmd_;
+  command.x = o[0];
+  command.y = o[1];
+  command.z = z;
+
+  this->cmd(command, left);
+}
+
 void Crane::right_go_to_map(double y, double z)
 {
   auto right_cmd = right_last_cmd_;

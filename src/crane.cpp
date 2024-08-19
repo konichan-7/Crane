@@ -7,7 +7,8 @@
 #include "tools/img_tools.hpp"
 #include "tools/logger.hpp"
 
-constexpr int REACH_CNT = 10;
+constexpr int GRIP_CNT = 30;
+constexpr int REACH_CNT = 20;
 constexpr int FOUND_CNT = 3;
 constexpr double EPS = 0.01;
 
@@ -18,7 +19,7 @@ Crane::Crane(const std::string & config_path)
   right_cboard_("can0", false),
   left_cam_("video0", config_path),
   right_cam_("video2", config_path),
-  yolo_("assets/int8/quantized_model.xml", classes.size(), classes, "AUTO"),
+  yolo_("assets/openvino_model_v6/best.xml", classes.size(), classes, "AUTO"),
   solver_(config_path),
   matcher_(config_path)
 {
@@ -54,7 +55,7 @@ void Crane::forward(auto_crane::LandmarkName name, int id, double z, bool left)
 
   auto command = left ? left_last_cmd_ : right_last_cmd_;
   command.x = o[0];
-  command.y = o[1];
+  command.y = o[1] + (left ? -0.04 : 0.04);
   command.z = z;
 
   this->cmd(command, left);
@@ -280,6 +281,9 @@ void Crane::align(auto_crane::LandmarkName name, int id, bool left)
     if (!is_wood) {
       target_in_odom[1] += left ? y_left_get_offset_ : y_right_get_offset_;
     }
+    else {
+      target_in_odom[1] += left ? -0.02 : 0.02;
+    }
 
     this->go_no_wait(target_in_odom, left);
     if ((cam_in_odom - target_in_odom).norm() < EPS)
@@ -320,7 +324,7 @@ void Crane::grip(bool grip, bool left)
   auto command = left ? left_last_cmd_ : right_last_cmd_;
   command.grip = grip;
 
-  for (int i = 0; i < 20; i++) {
+  for (int i = 0; i < GRIP_CNT; i++) {
     cv::Mat img;
     std::chrono::steady_clock::time_point t;
     this->read(img, t, left);

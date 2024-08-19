@@ -60,23 +60,6 @@ void Crane::forward(auto_crane::LandmarkName name, int id, double z, bool left)
   this->cmd(command, left);
 }
 
-void Crane::right_go_to_map(double y, double z)
-{
-  auto right_cmd = right_last_cmd_;
-  right_cmd.y = y + t_map_to_right_odom_[1];
-  right_cmd.z = z;
-  this->cmd(right_cmd, false);
-}
-
-void Crane::left_go_to_map(double x, double y, double z)
-{
-  auto left_cmd = left_last_cmd_;
-  left_cmd.x = x + t_map_to_left_odom_[0];
-  left_cmd.y = y + t_map_to_left_odom_[1];
-  left_cmd.z = z;
-  this->cmd(left_cmd, true);
-}
-
 bool Crane::try_get(int id, bool left)
 {
   if (this->find_white(id, left)) {

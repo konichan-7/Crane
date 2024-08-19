@@ -21,10 +21,6 @@ public:
   void wait_to_start();
 
   void forward(auto_crane::LandmarkName name, int id, double z, bool left);
-
-  void right_go_to_map(double y, double z);
-  void left_go_to_map(double x, double y, double z);
-
   bool try_get(int id, bool left);
   void put(int id, bool left);
 

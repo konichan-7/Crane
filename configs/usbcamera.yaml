@@ -7,7 +7,7 @@ usb_exposure: 500 # 1-80000
 usb_gamma_: 160
 usb_gain_: 10 # 0-96
 
-y_left_odom_in_map: 0.55
+y_left_odom_in_map: 0.07
 y_right_odom_in_map: -0.65
 
 z_cam2map: 0.42

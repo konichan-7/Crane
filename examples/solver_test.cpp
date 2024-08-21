@@ -39,9 +39,15 @@ int main(int argc, char * argv[])
   tools::Exiter exiter;
   tools::Plotter plotter;
 
-  // auto_crane::YOLOV8 yolo("assets/openvino_model_v6/best.xml", classes.size(), classes, "AUTO");
-  auto_crane::YOLOV8 yolo("assets/int8/quantized_model.xml", classes.size(), classes, "AUTO");
+  auto_crane::YOLOV8 yolo("assets/openvino_model_v6/best.xml", classes.size(), classes, "AUTO");
+  // auto_crane::YOLOV8 yolo("assets/int8/quantized_model.xml", classes.size(), classes, "AUTO");
   auto_crane::Solver solver(config_path);
+
+  auto yaml = YAML::LoadFile(config_path);
+  auto x_get_offset =
+    left ? yaml["x_left_gripper_offset"].as<double>() : yaml["x_right_gripper_offset"].as<double>();
+  auto y_get_offset =
+    left ? yaml["y_left_get_offset"].as<double>() : yaml["y_right_get_offset"].as<double>();
 
   auto last_t = std::chrono::steady_clock::now();
 
@@ -74,6 +80,8 @@ int main(int argc, char * argv[])
       if (landmark.name != auto_crane::LandmarkName::WEIGHT) continue;
 
       target_in_odom = landmark.in_odom;
+      target_in_odom[0] += x_get_offset;
+      target_in_odom[1] += y_get_offset;
       break;
     }
 

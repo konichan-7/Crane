@@ -25,10 +25,12 @@ Crane::Crane(const std::string & config_path)
 {
   auto yaml = YAML::LoadFile(config_path);
 
+  auto x_left_odom_in_map = yaml["x_left_odom_in_map"].as<double>();
   auto y_left_odom_in_map = yaml["y_left_odom_in_map"].as<double>();
+  auto x_right_odom_in_map = yaml["x_right_odom_in_map"].as<double>();
   auto y_right_odom_in_map = yaml["y_right_odom_in_map"].as<double>();
-  t_map_to_left_odom_ = {0.0, -y_left_odom_in_map};
-  t_map_to_right_odom_ = {0.0, -y_right_odom_in_map};
+  t_map_to_left_odom_ = {-x_left_odom_in_map, -y_left_odom_in_map};
+  t_map_to_right_odom_ = {-x_right_odom_in_map, -y_right_odom_in_map};
 
   x_left_gripper_offset_ = yaml["x_left_gripper_offset"].as<double>();
   x_right_gripper_offset_ = yaml["x_right_gripper_offset"].as<double>();

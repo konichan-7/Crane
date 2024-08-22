@@ -44,9 +44,14 @@ int main(int argc, char * argv[])
   auto_crane::Matcher matcher(config_path);
 
   auto yaml = YAML::LoadFile(config_path);
+  auto x_left_odom_in_map = yaml["x_left_odom_in_map"].as<double>();
   auto y_left_odom_in_map = yaml["y_left_odom_in_map"].as<double>();
+  auto x_right_odom_in_map = yaml["x_right_odom_in_map"].as<double>();
   auto y_right_odom_in_map = yaml["y_right_odom_in_map"].as<double>();
-  Eigen::Vector2d t_odom2map{0.0, (left ? y_left_odom_in_map : y_right_odom_in_map)};
+
+  Eigen::Vector2d t_left_odom_to_map = {x_left_odom_in_map, y_left_odom_in_map};
+  Eigen::Vector2d t_right_odom_to_map = {x_right_odom_in_map, y_right_odom_in_map};
+  Eigen::Vector2d t_odom2map = left ? t_left_odom_to_map : t_right_odom_to_map;
 
   while (!exiter.exit()) {
     cv::Mat img;

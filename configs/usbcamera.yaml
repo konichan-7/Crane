@@ -10,8 +10,8 @@ usb_gain_: 10 # 0-96
 # 开始时，相机系原点和对应里程计系原点重合
 x_left_odom_in_map: -0.05
 y_left_odom_in_map: 0.07
-x_right_odom_in_map: 0.0
-y_right_odom_in_map: -0.65
+x_right_odom_in_map: -0.01
+y_right_odom_in_map: -0.60
 
 z_cam2map: 0.42
 white_height: 0
@@ -19,13 +19,13 @@ weight_height: 0.055
 tall_wood_height: 0.2
 short_wood_height: 0.1
 
-x_left_gripper_offset: -0.045
+x_left_gripper_offset: -0.04
 x_right_gripper_offset: -0.01
 
 y_left_get_offset: 0.035
-y_right_get_offset: -0.02
+y_right_get_offset: -0.025
 
 y_left_put_offset: 0.07
 y_right_put_offset: -0.07
 
-max_match_error: 0.2
+max_match_error: 0.1

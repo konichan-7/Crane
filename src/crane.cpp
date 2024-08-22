@@ -8,9 +8,9 @@
 #include "tools/logger.hpp"
 
 constexpr int GRIP_CNT = 30;
-constexpr int REACH_CNT = 20;
+constexpr int REACH_CNT = 3;
 constexpr int FOUND_CNT = 3;
-constexpr double EPS = 0.01;
+constexpr double EPS = 0.0075;
 
 const std::vector<std::string> classes = {"weights", "white", "wood"};
 
@@ -316,11 +316,7 @@ void Crane::align(auto_crane::LandmarkName name, int id, bool left)
     cv::waitKey(1);
   }
 
-  if (!is_wood) {
-    t_map2odom = target.in_odom - target.in_map;
-    t_map_to_left_odom_[0] = t_map2odom[0];
-    t_map_to_right_odom_[0] = t_map2odom[0];
-  }
+  if (!is_wood) t_map2odom = target.in_odom - target.in_map;
 }
 
 void Crane::grip(bool grip, bool left)

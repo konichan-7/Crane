@@ -45,7 +45,7 @@ Crane::Crane(const std::string & config_path)
 void Crane::wait_to_start()
 {
   tools::logger()->info("[Crane] waiting to start...");
-  while (!left_cboard_.start) std::this_thread::sleep_for(10ms);
+  while (!left_cboard_.start || !right_cboard_.start) std::this_thread::sleep_for(10ms);
 }
 
 void Crane::forward(auto_crane::LandmarkName name, int id, double z, bool left)

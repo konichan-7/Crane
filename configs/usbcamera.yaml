@@ -9,9 +9,9 @@ usb_gain_: 10 # 0-96
 
 # 开始时，相机系原点和对应里程计系原点重合
 x_left_odom_in_map: -0.05
-y_left_odom_in_map: 0.07
+y_left_odom_in_map: 0.54
 x_right_odom_in_map: -0.01
-y_right_odom_in_map: -0.60
+y_right_odom_in_map: -0.54
 
 z_cam2map: 0.42
 white_height: 0

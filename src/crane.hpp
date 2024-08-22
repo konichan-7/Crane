@@ -49,6 +49,7 @@ private:
 
   double y_left_put_offset_;
   double y_right_put_offset_;
+  double x_align_woods_offset_;
 
   io::Command left_last_cmd_{0.0, 0.0, 0.0, false, false};
   io::Command right_last_cmd_{0.0, 0.0, 0.0, false, false};

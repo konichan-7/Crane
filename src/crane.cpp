@@ -47,6 +47,7 @@ Crane::Crane(const std::string & config_path)
 
   y_left_put_offset_ = yaml["y_left_put_offset"].as<double>();
   y_right_put_offset_ = yaml["y_right_put_offset"].as<double>();
+  x_align_woods_offset_ = yaml["x_align_woods_offset"].as<double>();
 }
 
 void Crane::wait_to_start()
@@ -272,8 +273,6 @@ void Crane::go_both(Eigen::Vector3d l_in_odom, Eigen::Vector3d r_in_odom)
     cv::imshow("img2", img_r);
     cv::waitKey(1);
   }
-
-  cv::destroyWindow("img2");
 }
 
 bool Crane::find_white(int id, bool left)
@@ -464,12 +463,10 @@ void Crane::align_woods(int id_l, int id_r)
 
     if (!found_l || !found_r) continue;
 
-    Eigen::Vector3d l_in_odom{
-      wood_l.in_odom[0] + x_left_gripper_offset_, wood_l.in_odom[1] - 0.02, HOLD_Z};
-    Eigen::Vector3d r_in_odom{
-      wood_r.in_odom[0] + x_right_gripper_offset_, wood_r.in_odom[1] + 0.02, HOLD_Z};
+    Eigen::Vector3d l_in_odom{wood_l.in_odom[0], wood_l.in_odom[1] - 0.02, HOLD_Z};
+    Eigen::Vector3d r_in_odom{wood_r.in_odom[0], wood_r.in_odom[1] + 0.02, HOLD_Z};
 
-    auto x = (l_in_odom[0] + r_in_odom[0]) * 0.5;
+    auto x = (l_in_odom[0] + r_in_odom[0]) * 0.5 + x_align_woods_offset_;
     l_in_odom[0] = x;
     r_in_odom[0] = x;
 
@@ -489,8 +486,6 @@ void Crane::align_woods(int id_l, int id_r)
     cv::imshow("img2", img_r);
     cv::waitKey(1);
   }
-
-  cv::destroyWindow("img2");
 }
 
 void Crane::grip(bool grip, bool left)
@@ -538,6 +533,4 @@ void Crane::grip_both(bool grip_l, bool grip_r)
     this->cmd(command_l, true);
     this->cmd(command_r, false);
   }
-
-  cv::destroyWindow("img2");
 }

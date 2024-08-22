@@ -22,7 +22,7 @@ short_wood_height: 0.1
 x_left_gripper_offset: -0.04
 x_right_gripper_offset: -0.01
 
-y_left_get_offset: 0.035
+y_left_get_offset: 0.04
 y_right_get_offset: -0.025
 
 # 正方向同odom
@@ -34,5 +34,6 @@ y_right_wood_offset: 0.0
 # 正方向同odom
 y_left_put_offset: 0.07
 y_right_put_offset: -0.07
+x_align_woods_offset: -0.02
 
 max_match_error: 0.1

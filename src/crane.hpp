@@ -43,6 +43,9 @@ private:
   double y_left_get_offset_;
   double y_right_get_offset_;
 
+  Eigen::Vector2d left_wood_offset_;
+  Eigen::Vector2d right_wood_offset_;
+
   double y_left_put_offset_;
   double y_right_put_offset_;
 

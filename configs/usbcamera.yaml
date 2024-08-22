@@ -25,6 +25,13 @@ x_right_gripper_offset: -0.01
 y_left_get_offset: 0.035
 y_right_get_offset: -0.025
 
+# 正方向同odom
+x_left_wood_offset: 0.0
+y_left_wood_offset: 0.0
+x_right_wood_offset: 0.0
+y_right_wood_offset: 0.0
+
+# 正方向同odom
 y_left_put_offset: 0.07
 y_right_put_offset: -0.07
 

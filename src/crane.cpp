@@ -38,8 +38,12 @@ Crane::Crane(const std::string & config_path)
   y_left_get_offset_ = yaml["y_left_get_offset"].as<double>();
   y_right_get_offset_ = yaml["y_right_get_offset"].as<double>();
 
-  y_left_put_offset_ = yaml["y_left_put_offset"].as<double>();
-  y_right_put_offset_ = yaml["y_right_put_offset"].as<double>();
+  auto x_left_wood_offset = yaml["x_left_wood_offset"].as<double>();
+  auto y_left_wood_offset = yaml["y_left_wood_offset"].as<double>();
+  auto x_right_wood_offset = yaml["x_right_wood_offset"].as<double>();
+  auto y_right_wood_offset = yaml["y_right_wood_offset"].as<double>();
+  left_wood_offset_ = {x_left_wood_offset, y_left_wood_offset};
+  right_wood_offset_ = {x_right_wood_offset, y_right_wood_offset};
 }
 
 void Crane::wait_to_start()

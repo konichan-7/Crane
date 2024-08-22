@@ -316,7 +316,11 @@ void Crane::align(auto_crane::LandmarkName name, int id, bool left)
     cv::waitKey(1);
   }
 
-  if (!is_wood) t_map2odom = target.in_odom - target.in_map;
+  if (!is_wood) {
+    t_map2odom = target.in_odom - target.in_map;
+    t_map_to_left_odom_[0] = t_map2odom[0];
+    t_map_to_right_odom_[0] = t_map2odom[0];
+  }
 }
 
 void Crane::grip(bool grip, bool left)

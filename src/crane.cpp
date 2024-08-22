@@ -44,6 +44,9 @@ Crane::Crane(const std::string & config_path)
   auto y_right_wood_offset = yaml["y_right_wood_offset"].as<double>();
   left_wood_offset_ = {x_left_wood_offset, y_left_wood_offset};
   right_wood_offset_ = {x_right_wood_offset, y_right_wood_offset};
+
+  y_left_put_offset_ = yaml["y_left_put_offset"].as<double>();
+  y_right_put_offset_ = yaml["y_right_put_offset"].as<double>();
 }
 
 void Crane::wait_to_start()

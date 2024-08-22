@@ -23,6 +23,7 @@ public:
   void forward(auto_crane::LandmarkName name, int id, double z, bool left);
   bool try_get(int id, bool left);
   void put(int id, bool left);
+  void puts(int id_l, int id_r);
 
 private:
   io::CBoard left_cboard_;
@@ -63,10 +64,14 @@ private:
 
   void go_no_wait(Eigen::Vector3d target_in_odom, bool left);
   void go(Eigen::Vector3d target_in_odom, bool left);
+  void go_both(Eigen::Vector3d l_in_odom, Eigen::Vector3d r_in_odom);
 
   bool find_white(int id, bool left);
   void align(auto_crane::LandmarkName name, int id, bool left);
+  void align_woods(int id_l, int id_r);
+
   void grip(bool grip, bool left);
+  void grip_both(bool grip_l, bool grip_r);
 };
 
 #endif  // SRC__CRANE_HPP

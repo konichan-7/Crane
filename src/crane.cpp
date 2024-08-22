@@ -102,6 +102,25 @@ void Crane::put(int id, bool left)
   this->go({this->last_x(), this->last_y(left), HOLD_Z}, left);
 }
 
+void Crane::puts(int id_l, int id_r)
+{
+  this->align_woods(id_l, id_r);
+
+  left_last_cmd_.slow = true;
+  right_last_cmd_.slow = true;
+  this->go_both(
+    {this->last_x(), this->last_y(true) + y_left_put_offset_, HOLD_Z},
+    {this->last_x(), this->last_y(false) + y_right_put_offset_, HOLD_Z});
+  left_last_cmd_.slow = false;
+  right_last_cmd_.slow = false;
+
+  this->go_both(
+    {this->last_x(), this->last_y(true), PUT_H_Z}, {this->last_x(), this->last_y(false), PUT_H_Z});
+  this->grip_both(false, false);
+  this->go_both(
+    {this->last_x(), this->last_y(true), HOLD_Z}, {this->last_x(), this->last_y(false), HOLD_Z});
+}
+
 double Crane::last_x() const { return left_last_cmd_.x; }
 
 double Crane::last_y(bool left) const { return left ? left_last_cmd_.y : right_last_cmd_.y; }
@@ -206,6 +225,57 @@ void Crane::go(Eigen::Vector3d target_in_odom, bool left)
   }
 }
 
+void Crane::go_both(Eigen::Vector3d l_in_odom, Eigen::Vector3d r_in_odom)
+{
+  tools::logger()->info("[Crane] go both");
+
+  int reach_cnt = 0;
+
+  while (true) {
+    cv::Mat img_l;
+    std::chrono::steady_clock::time_point t_l;
+    this->read(img_l, t_l, true);
+    auto detections_l = yolo_.infer(img_l);
+    auto_crane::draw_detections(img_l, detections_l, classes);
+
+    cv::Mat img_r;
+    std::chrono::steady_clock::time_point t_r;
+    this->read(img_r, t_r, false);
+    auto detections_r = yolo_.infer(img_r);
+    auto_crane::draw_detections(img_r, detections_r, classes);
+
+    Eigen::Vector3d cam_in_odom_l;
+    Eigen::Vector3d cam_in_odom_r;
+
+    if (t_r > t_l) {
+      cam_in_odom_l = this->odom_at(t_l, true);
+      cam_in_odom_r = this->odom_at(t_r, false);
+    }
+    else {
+      cam_in_odom_r = this->odom_at(t_r, false);
+      cam_in_odom_l = this->odom_at(t_l, true);
+    }
+
+    this->go_no_wait(l_in_odom, true);
+    this->go_no_wait(r_in_odom, false);
+
+    if ((cam_in_odom_l - l_in_odom).norm() < EPS && (cam_in_odom_r - r_in_odom).norm() < EPS)
+      reach_cnt++;
+    else
+      reach_cnt = 0;
+
+    if (reach_cnt > REACH_CNT) break;
+
+    cv::resize(img_l, img_l, {}, 0.5, 0.5);
+    cv::imshow("img", img_l);
+    cv::resize(img_r, img_r, {}, 0.5, 0.5);
+    cv::imshow("img2", img_r);
+    cv::waitKey(1);
+  }
+
+  cv::destroyWindow("img2");
+}
+
 bool Crane::find_white(int id, bool left)
 {
   tools::logger()->info("[Crane] find_white {} {}", id, left ? "left" : "right");
@@ -254,7 +324,7 @@ bool Crane::find_white(int id, bool left)
     return true;
   }
 
-  if (found_weight_cnt > FOUND_CNT) return false;
+  return false;
 }
 
 void Crane::align(auto_crane::LandmarkName name, int id, bool left)
@@ -337,6 +407,92 @@ void Crane::align(auto_crane::LandmarkName name, int id, bool left)
   if (!is_wood) t_map2odom = target.in_odom - target.in_map;
 }
 
+void Crane::align_woods(int id_l, int id_r)
+{
+  tools::logger()->info("[Crane] align woods {} {}", id_l, id_r);
+
+  auto reach_cnt = 0;
+
+  while (true) {
+    cv::Mat img_l;
+    std::chrono::steady_clock::time_point t_l;
+    this->read(img_l, t_l, true);
+    auto detections_l = yolo_.infer(img_l);
+    auto_crane::draw_detections(img_l, detections_l, classes);
+
+    cv::Mat img_r;
+    std::chrono::steady_clock::time_point t_r;
+    this->read(img_r, t_r, false);
+    auto detections_r = yolo_.infer(img_r);
+    auto_crane::draw_detections(img_r, detections_r, classes);
+
+    Eigen::Vector3d cam_in_odom_l;
+    Eigen::Vector3d cam_in_odom_r;
+
+    if (t_r > t_l) {
+      cam_in_odom_l = this->odom_at(t_l, true);
+      cam_in_odom_r = this->odom_at(t_r, false);
+    }
+    else {
+      cam_in_odom_r = this->odom_at(t_r, false);
+      cam_in_odom_l = this->odom_at(t_l, true);
+    }
+
+    auto found_l = false;
+    auto_crane::Landmark wood_l;
+    Eigen::Vector2d t_cam2odom_l = cam_in_odom_l.head<2>();
+    auto landmarks_l = solver_.solve(detections_l, t_cam2odom_l, true);
+    matcher_.match(landmarks_l, -t_map_to_left_odom_);
+    for (const auto & l : landmarks_l) {
+      if (l.name != auto_crane::TALL_WOOD || l.id != id_l) continue;
+      found_l = true;
+      wood_l = l;
+      break;
+    }
+
+    auto found_r = false;
+    auto_crane::Landmark wood_r;
+    Eigen::Vector2d t_cam2odom_r = cam_in_odom_r.head<2>();
+    auto landmarks_r = solver_.solve(detections_r, t_cam2odom_r, false);
+    matcher_.match(landmarks_r, -t_map_to_right_odom_);
+    for (const auto & l : landmarks_r) {
+      if (l.name != auto_crane::TALL_WOOD || l.id != id_r) continue;
+      found_r = true;
+      wood_r = l;
+      break;
+    }
+
+    if (!found_l || !found_r) continue;
+
+    Eigen::Vector3d l_in_odom{
+      wood_l.in_odom[0] + x_left_gripper_offset_, wood_l.in_odom[1] - 0.02, HOLD_Z};
+    Eigen::Vector3d r_in_odom{
+      wood_r.in_odom[0] + x_right_gripper_offset_, wood_r.in_odom[1] + 0.02, HOLD_Z};
+
+    auto x = (l_in_odom[0] + r_in_odom[0]) * 0.5;
+    l_in_odom[0] = x;
+    r_in_odom[0] = x;
+
+    this->go_no_wait(l_in_odom, true);
+    this->go_no_wait(r_in_odom, false);
+
+    if ((cam_in_odom_l - l_in_odom).norm() < EPS && (cam_in_odom_r - r_in_odom).norm() < EPS)
+      reach_cnt++;
+    else
+      reach_cnt = 0;
+
+    if (reach_cnt > REACH_CNT) break;
+
+    cv::resize(img_l, img_l, {}, 0.5, 0.5);
+    cv::imshow("img", img_l);
+    cv::resize(img_r, img_r, {}, 0.5, 0.5);
+    cv::imshow("img2", img_r);
+    cv::waitKey(1);
+  }
+
+  cv::destroyWindow("img2");
+}
+
 void Crane::grip(bool grip, bool left)
 {
   tools::logger()->info("[Crane] grip {}", left ? "left" : "right");
@@ -355,4 +511,33 @@ void Crane::grip(bool grip, bool left)
 
     this->cmd(command, left);
   }
+}
+
+void Crane::grip_both(bool grip_l, bool grip_r)
+{
+  tools::logger()->info("[Crane] grip both");
+
+  auto command_l = left_last_cmd_;
+  auto command_r = right_last_cmd_;
+  command_l.grip = grip_l;
+  command_r.grip = grip_r;
+
+  for (int i = 0; i < GRIP_CNT; i++) {
+    cv::Mat img_l;
+    cv::Mat img_r;
+    std::chrono::steady_clock::time_point t;
+    this->read(img_l, t, true);
+    this->read(img_r, t, false);
+
+    cv::resize(img_l, img_l, {}, 0.5, 0.5);
+    cv::imshow("img", img_l);
+    cv::resize(img_r, img_r, {}, 0.5, 0.5);
+    cv::imshow("img2", img_r);
+    cv::waitKey(1);
+
+    this->cmd(command_l, true);
+    this->cmd(command_r, false);
+  }
+
+  cv::destroyWindow("img2");
 }

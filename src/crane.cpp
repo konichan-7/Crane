@@ -210,8 +210,11 @@ bool Crane::find_white(int id, bool left)
 {
   tools::logger()->info("[Crane] find_white {} {}", id, left ? "left" : "right");
 
+  Eigen::Vector2d & t_map2odom = left ? t_map_to_left_odom_ : t_map_to_right_odom_;
+
   auto found_white_cnt = 0;
   auto found_weight_cnt = 0;
+  auto_crane::Landmark target;
 
   while (true) {
     cv::Mat img;
@@ -223,27 +226,35 @@ bool Crane::find_white(int id, bool left)
 
     auto detections = yolo_.infer(img);
     auto landmarks = solver_.solve(detections, t_cam2odom, left);
-    matcher_.match(landmarks, -(left ? t_map_to_left_odom_ : t_map_to_right_odom_));
+    matcher_.match(landmarks, -t_map2odom);
 
     for (const auto & l : landmarks) {
       if (l.name == auto_crane::WHITE && l.id == id) {
         found_white_cnt++;
+        target = l;
         break;
       }
       if (l.name == auto_crane::WEIGHT && l.id == id) {
         found_weight_cnt++;
+        target = l;
         break;
       }
     }
 
-    if (found_white_cnt > FOUND_CNT) return true;
-    if (found_weight_cnt > FOUND_CNT) return false;
+    if (found_white_cnt > FOUND_CNT || found_weight_cnt > FOUND_CNT) break;
 
     auto_crane::draw_detections(img, detections, classes);
     cv::resize(img, img, {}, 0.5, 0.5);
     cv::imshow("img", img);
     cv::waitKey(1);
   }
+
+  if (found_white_cnt > FOUND_CNT) {
+    t_map2odom = target.in_odom - target.in_map;
+    return true;
+  }
+
+  if (found_weight_cnt > FOUND_CNT) return false;
 }
 
 void Crane::align(auto_crane::LandmarkName name, int id, bool left)

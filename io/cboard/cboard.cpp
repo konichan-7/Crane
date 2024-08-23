@@ -65,19 +65,23 @@ void CBoard::send(Command command) const
   }
 }
 
-void CBoard::rotate(double dx) const
+void CBoard::rotate(double dx)
 {
+  dx_sum_ += dx;
+
   can_frame frame;
   frame.can_id = 0x99;
   frame.can_dlc = 8;
-  frame.data[0] = (int16_t)(dx * 1e3) >> 8;
-  frame.data[1] = (int16_t)(dx * 1e3);
+  frame.data[0] = (int16_t)(dx_sum_ * 1e3) >> 8;
+  frame.data[1] = (int16_t)(dx_sum_ * 1e3);
 
   try {
     can_.write(&frame);
   } catch (const std::exception & e) {
     tools::logger()->warn("{}", e.what());
   }
+
+  tools::logger()->info("[CBoard] rotate dx_sum: {:.3f}", dx_sum_);
 }
 
 void CBoard::callback(const can_frame & frame)

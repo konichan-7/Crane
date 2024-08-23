@@ -21,7 +21,7 @@ public:
 
   void send(Command command) const;
 
-  void rotate(double dx) const;
+  void rotate(double dx);
 
 private:
   struct OdomData
@@ -37,6 +37,8 @@ private:
   SocketCAN can_;
   OdomData data_ahead_;
   OdomData data_behind_;
+
+  double dx_sum_ = 0.0;
 
   void callback(const can_frame & frame);
 };

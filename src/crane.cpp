@@ -106,6 +106,7 @@ void Crane::put(int id, bool left)
 void Crane::puts(int id_l, int id_r)
 {
   this->align_woods(id_l, id_r);
+  this->rotate(id_l, id_r);
 
   left_last_cmd_.slow = true;
   right_last_cmd_.slow = true;
@@ -482,6 +483,77 @@ void Crane::align_woods(int id_l, int id_r)
     cv::imshow("img2", img_r);
     cv::waitKey(1);
   }
+}
+
+void Crane::rotate(int id_l, int id_r)
+{
+  tools::logger()->info("[Crane] rotate {} {}", id_l, id_r);
+
+  auto dx = 0.0;
+
+  while (true) {
+    cv::Mat img_l;
+    std::chrono::steady_clock::time_point t_l;
+    this->read(img_l, t_l, true);
+    auto detections_l = yolo_.infer(img_l);
+    auto_crane::draw_detections(img_l, detections_l, classes);
+
+    cv::Mat img_r;
+    std::chrono::steady_clock::time_point t_r;
+    this->read(img_r, t_r, false);
+    auto detections_r = yolo_.infer(img_r);
+    auto_crane::draw_detections(img_r, detections_r, classes);
+
+    Eigen::Vector3d cam_in_odom_l;
+    Eigen::Vector3d cam_in_odom_r;
+
+    if (t_r > t_l) {
+      cam_in_odom_l = this->odom_at(t_l, true);
+      cam_in_odom_r = this->odom_at(t_r, false);
+    }
+    else {
+      cam_in_odom_r = this->odom_at(t_r, false);
+      cam_in_odom_l = this->odom_at(t_l, true);
+    }
+
+    auto found_l = false;
+    auto_crane::Landmark wood_l;
+    Eigen::Vector2d t_cam2odom_l = cam_in_odom_l.head<2>();
+    auto landmarks_l = solver_.solve(detections_l, t_cam2odom_l, true);
+    matcher_.match(landmarks_l, -t_map_to_left_odom_);
+    for (const auto & l : landmarks_l) {
+      if (l.name != auto_crane::TALL_WOOD || l.id != id_l) continue;
+      found_l = true;
+      wood_l = l;
+      break;
+    }
+
+    auto found_r = false;
+    auto_crane::Landmark wood_r;
+    Eigen::Vector2d t_cam2odom_r = cam_in_odom_r.head<2>();
+    auto landmarks_r = solver_.solve(detections_r, t_cam2odom_r, false);
+    matcher_.match(landmarks_r, -t_map_to_right_odom_);
+    for (const auto & l : landmarks_r) {
+      if (l.name != auto_crane::TALL_WOOD || l.id != id_r) continue;
+      found_r = true;
+      wood_r = l;
+      break;
+    }
+
+    if (!found_l || !found_r) continue;
+
+    dx = 0.03 - (wood_l.in_odom[0] - wood_r.in_odom[0]);
+    tools::logger()->debug("dx={:.3f}", dx);
+    break;
+
+    cv::resize(img_l, img_l, {}, 0.5, 0.5);
+    cv::imshow("img", img_l);
+    cv::resize(img_r, img_r, {}, 0.5, 0.5);
+    cv::imshow("img2", img_r);
+    cv::waitKey(1);
+  }
+
+  left_cboard_.rotate(dx);
 }
 
 void Crane::grip(bool grip, bool left)

@@ -36,8 +36,6 @@ int main(int argc, char * argv[])
   crane.forward(auto_crane::TALL_WOOD, 0, HOLD_Z, true);
   crane.forward(auto_crane::TALL_WOOD, 3, HOLD_Z, false);
 
-  // crane.put(0, true);
-  // crane.put(3, false);
   crane.puts(0, 3);
 
   // -------------------- middle --------------------
@@ -68,8 +66,6 @@ int main(int argc, char * argv[])
   crane.forward(auto_crane::TALL_WOOD, 1, HOLD_Z, true);
   crane.forward(auto_crane::TALL_WOOD, 2, HOLD_Z, false);
 
-  // crane.put(1, true);
-  // crane.put(2, false);
   crane.puts(1, 2);
 
   return 0;

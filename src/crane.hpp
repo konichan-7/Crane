@@ -71,6 +71,8 @@ private:
   void align(auto_crane::LandmarkName name, int id, bool left);
   void align_woods(int id_l, int id_r);
 
+  void rotate(int id_l, int id_r);
+
   void grip(bool grip, bool left);
   void grip_both(bool grip_l, bool grip_r);
 };

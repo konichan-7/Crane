@@ -236,14 +236,10 @@ void Crane::go_both(Eigen::Vector3d l_in_odom, Eigen::Vector3d r_in_odom)
     cv::Mat img_l;
     std::chrono::steady_clock::time_point t_l;
     this->read(img_l, t_l, true);
-    auto detections_l = yolo_.infer(img_l);
-    auto_crane::draw_detections(img_l, detections_l, classes);
 
     cv::Mat img_r;
     std::chrono::steady_clock::time_point t_r;
     this->read(img_r, t_r, false);
-    auto detections_r = yolo_.infer(img_r);
-    auto_crane::draw_detections(img_r, detections_r, classes);
 
     Eigen::Vector3d cam_in_odom_l;
     Eigen::Vector3d cam_in_odom_r;

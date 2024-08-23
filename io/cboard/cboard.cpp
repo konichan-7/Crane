@@ -65,6 +65,21 @@ void CBoard::send(Command command) const
   }
 }
 
+void CBoard::rotate(double dx) const
+{
+  can_frame frame;
+  frame.can_id = 0x99;
+  frame.can_dlc = 8;
+  frame.data[0] = (int16_t)(dx * 1e3) >> 8;
+  frame.data[1] = (int16_t)(dx * 1e3);
+
+  try {
+    can_.write(&frame);
+  } catch (const std::exception & e) {
+    tools::logger()->warn("{}", e.what());
+  }
+}
+
 void CBoard::callback(const can_frame & frame)
 {
   auto t = std::chrono::steady_clock::now();

@@ -21,6 +21,8 @@ public:
 
   void send(Command command) const;
 
+  void rotate(double dx) const;
+
 private:
   struct OdomData
   {

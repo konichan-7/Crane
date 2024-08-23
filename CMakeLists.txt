@@ -19,6 +19,9 @@ add_subdirectory(tools)
 add_subdirectory(io)
 add_subdirectory(tasks/auto_crane)
 
+add_executable(cboard_rotate_test examples/cboard_rotate_test.cpp)
+target_link_libraries(cboard_rotate_test ${OpenCV_LIBS} fmt::fmt io tools)
+
 add_executable(cboard_rx_test examples/cboard_rx_test.cpp)
 target_link_libraries(cboard_rx_test ${OpenCV_LIBS} fmt::fmt io tools)
 

@@ -8,7 +8,7 @@
 #include "tools/logger.hpp"
 
 constexpr int GRIP_CNT = 30;
-constexpr int REACH_CNT = 3;
+constexpr int REACH_CNT = 5;
 constexpr int FOUND_CNT = 3;
 constexpr double EPS = 0.0075;
 
@@ -458,22 +458,22 @@ void Crane::align_woods(int id_l, int id_r)
       break;
     }
 
-    if (!found_l || !found_r) continue;
+    if (found_l && found_r) {
+      Eigen::Vector3d l_in_odom{wood_l.in_odom[0], wood_l.in_odom[1] - 0.02, HOLD_Z};
+      Eigen::Vector3d r_in_odom{wood_r.in_odom[0], wood_r.in_odom[1] + 0.02, HOLD_Z};
 
-    Eigen::Vector3d l_in_odom{wood_l.in_odom[0], wood_l.in_odom[1] - 0.02, HOLD_Z};
-    Eigen::Vector3d r_in_odom{wood_r.in_odom[0], wood_r.in_odom[1] + 0.02, HOLD_Z};
+      auto x = (l_in_odom[0] + r_in_odom[0]) * 0.5 + x_align_woods_offset_;
+      l_in_odom[0] = x;
+      r_in_odom[0] = x;
 
-    auto x = (l_in_odom[0] + r_in_odom[0]) * 0.5 + x_align_woods_offset_;
-    l_in_odom[0] = x;
-    r_in_odom[0] = x;
+      this->go_no_wait(l_in_odom, true);
+      this->go_no_wait(r_in_odom, false);
 
-    this->go_no_wait(l_in_odom, true);
-    this->go_no_wait(r_in_odom, false);
-
-    if ((cam_in_odom_l - l_in_odom).norm() < EPS && (cam_in_odom_r - r_in_odom).norm() < EPS)
-      reach_cnt++;
-    else
-      reach_cnt = 0;
+      if ((cam_in_odom_l - l_in_odom).norm() < EPS && (cam_in_odom_r - r_in_odom).norm() < EPS)
+        reach_cnt++;
+      else
+        reach_cnt = 0;
+    }
 
     if (reach_cnt > REACH_CNT) break;
 
